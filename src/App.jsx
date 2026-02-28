@@ -48,7 +48,7 @@ function LandingPage({ onEnter }) {
         </div>
         <h1 style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-6xl sm:text-8xl text-white leading-[0.95] mb-6 max-w-2xl">
           your promo<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">empire,</span>
+          <span style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">empire,</span>
           <br />tracked.
         </h1>
         <p className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
