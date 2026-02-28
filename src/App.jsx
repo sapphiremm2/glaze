@@ -35,6 +35,87 @@ const glass = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// LANDING PAGE
+// ═══════════════════════════════════════════════════════════════
+function LandingPage({ onEnter }) {
+  return (
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+
+      {/* Subtle grain overlay */}
+      <div className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        style={{backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`, backgroundRepeat:'repeat', backgroundSize:'128px'}} />
+
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-8 pt-8 relative z-10">
+        <span className="text-xl font-black tracking-tighter text-white">
+          glaze<span className="text-violet-400">.</span>
+        </span>
+        <button
+          onClick={onEnter}
+          className="text-sm text-white/50 hover:text-white transition-colors"
+        >
+          Sign in →
+        </button>
+      </nav>
+
+      {/* Hero */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center relative z-10 py-24">
+
+        {/* Pill badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300 text-xs font-medium mb-10 tracking-wide">
+          <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+          built for music creators
+        </div>
+
+        {/* Headline */}
+        <h1 className="text-5xl sm:text-7xl font-black tracking-tighter text-white leading-[0.95] mb-6 max-w-2xl">
+          your promo<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
+            empire,
+          </span>
+          <br />tracked.
+        </h1>
+
+        {/* Subheadline */}
+        <p className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
+          Glaze helps independent artists manage song promos, track payments, and hit their monthly goals — all in one place.
+        </p>
+
+        {/* CTA */}
+        <button
+          onClick={onEnter}
+          className="px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide shadow-2xl shadow-white/10"
+        >
+          Start tracking free
+        </button>
+        <p className="text-white/20 text-xs mt-4">no credit card needed</p>
+
+        {/* Feature trio */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
+          {[
+            { icon: "⚡", title: "Smart Queue", body: "Prioritize promos by urgency. Never miss a deadline or forget who owes you." },
+            { icon: "💸", title: "Earnings Tracker", body: "See lifetime earnings, monthly goals, and exactly which clients pay best." },
+            { icon: "📁", title: "Payment Proof", body: "Attach work links and payment screenshots to every completed promo." },
+          ].map((f) => (
+            <div key={f.title} className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-2">
+              <span className="text-2xl">{f.icon}</span>
+              <p className="text-white font-semibold text-sm">{f.title}</p>
+              <p className="text-white/35 text-xs leading-relaxed">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="text-center pb-10 relative z-10 space-y-1">
+        <p className="text-white/20 text-xs">made by creators, for creators</p>
+        <p className="text-white/15 text-xs">sincerely, sapphire 🤍</p>
+      </footer>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 // AUTH SCREEN
 // ═══════════════════════════════════════════════════════════════
 function AuthScreen({ onAuth }) {
@@ -672,6 +753,7 @@ function ProfileTab({ user, onSignOut }) {
 // ═══════════════════════════════════════════════════════════════
 export default function App() {
   const [user, setUser] = useState(null);
+  const [showLanding, setShowLanding] = useState(true);
   const [tab, setTab] = useState("home");
   const [promos, setPromos] = useState([]);
   const [goal, setGoal] = useState(1000);
@@ -772,6 +854,7 @@ export default function App() {
     );
   }
 
+  if (!user && showLanding) return <LandingPage onEnter={() => setShowLanding(false)} />;
   if (!user) return <AuthScreen onAuth={setUser} />;
 
   return (
