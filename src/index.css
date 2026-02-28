@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Syne', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: #080810;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217, 70, 239, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 60% 30%, rgba(59, 130, 246, 0.07) 0%, transparent 50%);
+  min-height: 100dvh;
+  color: white;
+}
+
+/* Hide scrollbars */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
