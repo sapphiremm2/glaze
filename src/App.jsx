@@ -39,6 +39,18 @@ const themes = {
     btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
     text: "text-stone-800", subtext: "text-stone-500", muted: "text-stone-400",
   },
+  cyan: {
+    bg: "bg-[#050f12]",
+    bgStyle: {
+      background: "#050f12",
+      backgroundImage: "radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6,182,212,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(20,184,166,0.12) 0%, transparent 55%)"
+    },
+    card: "backdrop-blur-xl bg-cyan-400/5 border border-cyan-300/10 rounded-2xl p-5",
+    base: "backdrop-blur-xl bg-cyan-400/5 border border-cyan-300/10 rounded-2xl",
+    input: "w-full bg-cyan-400/5 border border-cyan-300/15 rounded-xl px-4 py-3 text-white placeholder-cyan-300/30 focus:outline-none focus:border-cyan-400/60 focus:bg-cyan-400/10 transition-all",
+    btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
+    text: "text-white", subtext: "text-cyan-200/60", muted: "text-cyan-300/30",
+  },
   pink: {
     bg: "bg-[#1a0a10]",
     bgStyle: {
@@ -352,15 +364,9 @@ function DeleteConfirmModal({ onClose, onConfirm, theme }) {
 }
 
 // ─── Promo Card ──────────────────────────────────────────────
-// FIX 1: No more swipe-to-complete — was fighting mobile drag/scroll
-// FIX 2: suggestionDismissed ref prevents re-showing after dismiss/move
-// FIX 3: 🎵 Listen button for audio_link
-// ─── Promo Card ──────────────────────────────────────────────
 function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd, dismissedIds, onDismissSuggestion }) {
   const g = themes[theme];
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const longPressTimer = useRef(null);
-  const [isLongPressing, setIsLongPressing] = useState(false);
 
   const today = new Date(); today.setHours(0,0,0,0);
   const deadline = promo.deadline || promo.due_date;
@@ -368,28 +374,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
   if (deadlineDate) deadlineDate.setHours(0,0,0,0);
   const isDueToday = deadlineDate && deadlineDate.getTime() === today.getTime();
   const daysUntil = deadlineDate ? Math.ceil((deadlineDate - today) / 86400000) : null;
-  // FIX: use parent-managed dismissed set so it survives tab switches
-  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0 && !dismissedIds.has(promo.id);
-
-  // Long press to drag on mobile
-  const handleTouchStart = (e) => {
-    longPressTimer.current = setTimeout(() => {
-      setIsLongPressing(true);
-      onDragStart(promo.id);
-    }, 400);
-  };
-  const handleTouchEnd = () => {
-    clearTimeout(longPressTimer.current);
-    if (isLongPressing) { setIsLongPressing(false); onDragEnd(); }
-  };
-  const handleTouchMove = (e) => {
-    if (!isLongPressing) { clearTimeout(longPressTimer.current); return; }
-    e.preventDefault();
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const card = el?.closest("[data-promoid]");
-    if (card && card.dataset.promoid !== promo.id) onDragEnter(card.dataset.promoid);
-  };
+  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0 && dismissedIds && !dismissedIds.has(promo.id);
 
   const isDragging = dragging === promo.id;
   const isOver = dragOver === promo.id;
@@ -411,21 +396,17 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
       )}
 
       <div
-        data-promoid={promo.id}
         draggable
         onDragStart={() => onDragStart(promo.id)}
         onDragEnter={() => onDragEnter(promo.id)}
         onDragEnd={onDragEnd}
         onDragOver={e => e.preventDefault()}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden ${isLongPressing ? "cursor-grabbing" : "cursor-grab"} select-none`}
+        className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing select-none`}
         style={{
           transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : "scale(1)",
           opacity: isDragging ? 0.5 : 1,
           transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
-          boxShadow: isDragging || isLongPressing ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
+          boxShadow: isDragging ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
           animation: !isDragging && isOver ? "jiggle 0.3s ease infinite" : undefined,
         }}
       >
@@ -443,6 +424,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
           </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline).toLocaleDateString()}</p>}
+            {/* FIX 3: audio link */}
             {promo.audio_link && (
               <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors">🎵 Listen</a>
             )}
@@ -511,7 +493,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const handleDragEnd = () => { setDragId(null); setDragOverId(null); };
 
   return (
-    <div className="space-y-5 pb-32">
+    <div className="space-y-5 pb-32 tab-enter">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
       <div className={`${g.card} space-y-3`}>
         <div className="flex items-center justify-between text-sm">
@@ -540,8 +522,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
             onComplete={(promo) => setCompletingPromo(promo)}
             onDelete={onDelete} onTogglePriority={onTogglePriority}
             onEdit={(promo) => setEditingPromo(promo)} onMoveTop={onMoveTop}
-            dismissedIds={dismissedIds}
-            onDismissSuggestion={onDismissSuggestion}
+            dismissedIds={dismissedIds} onDismissSuggestion={onDismissSuggestion}
           />
         ))}
       </div>
@@ -572,7 +553,7 @@ function StatsTab({ promos, goal, theme }) {
   const sortedMonths = [...months].sort((a,b) => a[0].localeCompare(b[0]));
   const fmtMonth = k => { const [y,m] = k.split("-"); return new Date(y,m-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"}); };
   return (
-    <div className="space-y-4 pb-32">
+    <div className="space-y-4 pb-32 tab-enter">
       <div className={`${g.card} text-center`}>
         <p className={`${g.muted} text-xs uppercase tracking-widest mb-1`}>Lifetime Earnings</p>
         <p className={`text-5xl font-black ${g.text}`}>{fmt(totalEarned)}</p>
@@ -612,7 +593,7 @@ function HistoryTab({ promos, onDelete, theme }) {
   const g = themes[theme];
   const completed = promos.filter(p => p.completed).sort((a,b) => new Date(b.completed_at)-new Date(a.completed_at));
   return (
-    <div className="space-y-3 pb-32">
+    <div className="space-y-3 pb-32 tab-enter">
       {completed.length === 0 && <div className={`text-center ${g.muted} py-16 text-sm`}>no completed promos yet</div>}
       {completed.map(p => (
         <div key={p.id} className={`${g.card} space-y-3`}>
@@ -639,6 +620,21 @@ function HistoryTab({ promos, onDelete, theme }) {
 }
 
 // ─── Profile Tab ─────────────────────────────────────────────
+function Collapsible({ label, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between text-sm font-semibold py-0.5 transition-opacity hover:opacity-80">
+        <span>{label}</span>
+        <span className="text-lg leading-none transition-transform duration-200" style={{display:"inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)"}}>⌄</span>
+      </button>
+      <div style={{display: open ? "block" : "none"}} className="pt-3 space-y-3 animate-fadeIn">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   const g = themes[theme];
   const [displayName, setDisplayName] = useState(user.user_metadata?.display_name||"");
@@ -695,54 +691,80 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   };
 
   return (
-    <div className="space-y-4 pb-32">
-      <div className={`${g.card} flex items-center gap-4`}>
-        <label className="cursor-pointer relative group shrink-0">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 overflow-hidden flex items-center justify-center text-2xl">
+    <div className="space-y-4 pb-32 tab-enter">
+      {/* Avatar hero — circle, centered */}
+      <div className={`${g.card} flex flex-col items-center gap-4 pt-6 pb-5`}>
+        <label className="cursor-pointer relative group">
+          <div className="w-24 h-24 rounded-full bg-white/10 overflow-hidden flex items-center justify-center text-4xl ring-2 ring-white/10 group-hover:ring-violet-400/50 transition-all duration-200">
             {avatar ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" /> : "👤"}
           </div>
-          <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs text-white font-medium">edit</div>
+          <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs text-white font-medium">edit</div>
           <input type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
         </label>
-        <div className="flex-1 min-w-0">
-          <p className={`${g.muted} text-xs mb-1`}>Display name</p>
+        <div className="w-full">
+          <p className={`${g.muted} text-xs mb-1.5 text-center`}>Display name</p>
           <div className="flex gap-2">
-            <input className={`${g.input} py-2 text-sm`} value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name" />
+            <input className={`${g.input} py-2 text-sm text-center`} value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name" />
             <button onClick={updateName} disabled={loading} className="px-3 py-2 bg-violet-500/60 hover:bg-violet-500 rounded-xl text-white text-sm transition-all shrink-0">✓</button>
           </div>
         </div>
+        {msg && <p className="text-sm text-violet-400 animate-fadeIn">{msg}</p>}
       </div>
-      {msg && <div className="text-center text-sm text-violet-400">{msg}</div>}
-      <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Current email</p><p className={`${g.subtext} text-sm`}>{user.email}</p></div>
-      <div className={`${g.card} space-y-3`}>
-        <p className={`${g.subtext} text-sm font-semibold`}>Change Email</p>
-        <input className={g.input} type="password" placeholder="Confirm current password" value={currentPasswordForEmail} onChange={e => setCurrentPasswordForEmail(e.target.value)} />
-        <input className={g.input} type="email" placeholder="New email address" value={newEmail} onChange={e => setNewEmail(e.target.value)} />
-        {emailMsg && <p className={`text-sm ${emailMsg.includes("✓") ? "text-emerald-500" : "text-rose-400"}`}>{emailMsg}</p>}
-        <button onClick={updateEmail} disabled={loading||!newEmail||!currentPasswordForEmail} className={`${g.btn} w-full bg-white/5 hover:bg-white/10 ${g.text} text-sm`}>Update Email</button>
-      </div>
-      <div className={`${g.card} space-y-3`}>
-        <p className={`${g.subtext} text-sm font-semibold`}>Change Password</p>
-        <input className={g.input} type="password" placeholder="Current password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
-        <input className={g.input} type="password" placeholder="New password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-        {pwMsg && <p className={`text-sm ${pwMsg.includes("✓") ? "text-emerald-500" : "text-rose-400"}`}>{pwMsg}</p>}
-        <button onClick={updatePassword} disabled={loading||!currentPassword||!newPassword} className={`${g.btn} w-full bg-white/5 hover:bg-white/10 ${g.text} text-sm`}>Update Password</button>
-      </div>
-      <div className={`${g.card} space-y-3`}>
-        <p className={`${g.subtext} text-sm font-semibold`}>🎨 Theme</p>
-        <div className="flex gap-2">
-          <button onClick={() => onThemeChange("dark")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "dark" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>🌙 Dark</button>
-          <button onClick={() => onThemeChange("light")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "light" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>☀️ Light</button>
-          <button onClick={() => onThemeChange("pink")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "pink" ? "bg-pink-500/80 border-pink-500 text-white" : "border-white/10 text-white/40 hover:text-pink-300 bg-white/5"}`}>🌸 Pink</button>
+
+      {/* Account settings collapsed */}
+      <div className={`${g.card} space-y-0`}>
+        <p className={`${g.muted} text-[11px] uppercase tracking-widest mb-3`}>Account</p>
+        <div className={`${g.subtext} text-sm mb-4`}>{user.email}</div>
+
+        <div className="space-y-4 divide-y divide-white/5">
+          <Collapsible label={<span className={g.subtext}>Change Email</span>}>
+            <input className={g.input} type="password" placeholder="Current password" value={currentPasswordForEmail} onChange={e => setCurrentPasswordForEmail(e.target.value)} />
+            <input className={g.input} type="email" placeholder="New email address" value={newEmail} onChange={e => setNewEmail(e.target.value)} />
+            {emailMsg && <p className={`text-sm ${emailMsg.includes("✓") ? "text-emerald-500" : "text-rose-400"}`}>{emailMsg}</p>}
+            <button onClick={updateEmail} disabled={loading||!newEmail||!currentPasswordForEmail} className={`${g.btn} w-full bg-white/5 hover:bg-white/10 ${g.text} text-sm`}>Update Email</button>
+          </Collapsible>
+          <div className="pt-4">
+            <Collapsible label={<span className={g.subtext}>Change Password</span>}>
+              <input className={g.input} type="password" placeholder="Current password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+              <input className={g.input} type="password" placeholder="New password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              {pwMsg && <p className={`text-sm ${pwMsg.includes("✓") ? "text-emerald-500" : "text-rose-400"}`}>{pwMsg}</p>}
+              <button onClick={updatePassword} disabled={loading||!currentPassword||!newPassword} className={`${g.btn} w-full bg-white/5 hover:bg-white/10 ${g.text} text-sm`}>Update Password</button>
+            </Collapsible>
+          </div>
         </div>
       </div>
+
+      {/* Theme */}
+      <div className={`${g.card} space-y-3`}>
+        <p className={`${g.subtext} text-sm font-semibold`}>🎨 Theme</p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            {id:"dark", label:"🌙 Dark"},
+            {id:"light", label:"☀️ Light"},
+            {id:"pink", label:"🌸 Pink"},
+            {id:"cyan", label:"🩵 Cyan"},
+          ].map(t => (
+            <button key={t.id} onClick={() => onThemeChange(t.id)}
+              className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                theme === t.id
+                  ? t.id === "pink" ? "bg-pink-500/80 border-pink-500 text-white scale-[1.02]"
+                  : t.id === "cyan" ? "bg-cyan-500/80 border-cyan-500 text-white scale-[1.02]"
+                  : "bg-violet-500/80 border-violet-500 text-white scale-[1.02]"
+                  : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"
+              }`}>{t.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Feedback */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>💬 Send Feedback</p>
         <textarea className={`${g.input} resize-none`} rows={3} placeholder="Tell us what you think, what's broken, or what you'd love to see…" value={feedbackText} onChange={e => setFeedbackText(e.target.value)} />
         {feedbackSent
-          ? <p className="text-emerald-500 text-sm text-center">Feedback sent! Thanks 🤍</p>
+          ? <p className="text-emerald-500 text-sm text-center animate-fadeIn">Feedback sent! Thanks 🤍</p>
           : <button onClick={submitFeedback} disabled={!feedbackText.trim()} className={`${g.btn} w-full bg-violet-500/40 hover:bg-violet-500/70 text-white text-sm`}>Send Feedback</button>}
       </div>
+
       <button onClick={onSignOut} className={`${g.btn} w-full bg-rose-500/20 hover:bg-rose-500/40 text-rose-500 text-sm`}>Sign Out</button>
     </div>
   );
@@ -900,11 +922,40 @@ function NavBtn({ id, icon, label, active, onClick, theme }) {
   );
 }
 
-function AddQuickBtn({ onAdd, pastClients, theme }) {
+function VinylBtn({ onClick }) {
+  const [spinning, setSpinning] = useState(false);
+  const handleClick = () => { setSpinning(true); setTimeout(() => setSpinning(false), 600); onClick(); };
+  return (
+    <button onClick={handleClick} className="relative w-14 h-14 mx-1 group" aria-label="Add promo">
+      <svg viewBox="0 0 56 56" className={`w-full h-full drop-shadow-lg transition-transform duration-200 group-hover:scale-110 group-active:scale-95 ${spinning ? "animate-spin-once" : ""}`}>
+        <circle cx="28" cy="28" r="27" fill="url(#vinylGrad)" />
+        {[22,17,12].map(r => <circle key={r} cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />)}
+        <circle cx="28" cy="28" r="9" fill="url(#labelGrad)" />
+        <circle cx="28" cy="28" r="2.5" fill="rgba(0,0,0,0.5)" />
+        <line x1="28" y1="23" x2="28" y2="33" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <line x1="23" y1="28" x2="33" y2="28" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <defs>
+          <radialGradient id="vinylGrad" cx="40%" cy="35%">
+            <stop offset="0%" stopColor="#6d28d9" />
+            <stop offset="50%" stopColor="#1e1040" />
+            <stop offset="100%" stopColor="#0d0820" />
+          </radialGradient>
+          <radialGradient id="labelGrad" cx="50%" cy="50%">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#d946ef" />
+          </radialGradient>
+        </defs>
+      </svg>
+    </button>
+  );
+}
+
+function AddQuickBtn({ onAdd, pastClients, theme, triggerOpen, onOpened }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => { if (triggerOpen) { setOpen(true); onOpened(); } }, [triggerOpen]);
   return (
     <>
-      <button onClick={() => setOpen(true)} className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-2xl font-light flex items-center justify-center shadow-lg shadow-violet-500/30 hover:scale-105 active:scale-95 transition-transform mx-1">+</button>
+      <VinylBtn onClick={() => setOpen(true)} />
       {open && <AddPromoModal onClose={() => setOpen(false)} onAdd={async f => { await onAdd(f); setOpen(false); }} pastClients={pastClients} theme={theme} />}
     </>
   );
@@ -924,7 +975,15 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem("glaze-theme") || "dark");
   const g = themes[theme];
 
+  const [ctrlN, setCtrlN] = useState(false);
+
   useEffect(() => { localStorage.setItem("glaze-theme", theme); }, [theme]);
+
+  useEffect(() => {
+    const handler = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "n") { e.preventDefault(); setCtrlN(true); } };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setUser(data.session?.user ?? null); setLoading(false); });
@@ -1017,7 +1076,7 @@ export default function App() {
         <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
           <NavBtn id="home" icon="⚡" label="Queue" active={tab} onClick={setTab} theme={theme} />
           <NavBtn id="history" icon="✓" label="History" active={tab} onClick={setTab} theme={theme} />
-          <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} />
+          <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={ctrlN} onOpened={() => setCtrlN(false)} />
           <NavBtn id="stats" icon="📊" label="Stats" active={tab} onClick={setTab} theme={theme} />
           <NavBtn id="profile" icon="👤" label="Profile" active={tab} onClick={setTab} theme={theme} />
         </div>
