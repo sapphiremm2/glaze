@@ -355,11 +355,12 @@ function DeleteConfirmModal({ onClose, onConfirm, theme }) {
 // FIX 1: No more swipe-to-complete — was fighting mobile drag/scroll
 // FIX 2: suggestionDismissed ref prevents re-showing after dismiss/move
 // FIX 3: 🎵 Listen button for audio_link
-function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd }) {
+// ─── Promo Card ──────────────────────────────────────────────
+function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd, dismissedIds, onDismissSuggestion }) {
   const g = themes[theme];
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [showSuggestion, setShowSuggestion] = useState(false);
-  const suggestionDismissed = useRef(false);
+  const longPressTimer = useRef(null);
+  const [isLongPressing, setIsLongPressing] = useState(false);
 
   const today = new Date(); today.setHours(0,0,0,0);
   const deadline = promo.deadline || promo.due_date;
@@ -367,23 +368,35 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
   if (deadlineDate) deadlineDate.setHours(0,0,0,0);
   const isDueToday = deadlineDate && deadlineDate.getTime() === today.getTime();
   const daysUntil = deadlineDate ? Math.ceil((deadlineDate - today) / 86400000) : null;
-  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0;
+  // FIX: use parent-managed dismissed set so it survives tab switches
+  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0 && !dismissedIds.has(promo.id);
 
-  useEffect(() => {
-    if (isUrgent && !suggestionDismissed.current) {
-      const t = setTimeout(() => setShowSuggestion(true), 600);
-      return () => clearTimeout(t);
-    } else {
-      setShowSuggestion(false);
-    }
-  }, [isUrgent, index]);
+  // Long press to drag on mobile
+  const handleTouchStart = (e) => {
+    longPressTimer.current = setTimeout(() => {
+      setIsLongPressing(true);
+      onDragStart(promo.id);
+    }, 400);
+  };
+  const handleTouchEnd = () => {
+    clearTimeout(longPressTimer.current);
+    if (isLongPressing) { setIsLongPressing(false); onDragEnd(); }
+  };
+  const handleTouchMove = (e) => {
+    if (!isLongPressing) { clearTimeout(longPressTimer.current); return; }
+    e.preventDefault();
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const card = el?.closest("[data-promoid]");
+    if (card && card.dataset.promoid !== promo.id) onDragEnter(card.dataset.promoid);
+  };
 
   const isDragging = dragging === promo.id;
   const isOver = dragOver === promo.id;
 
   return (
     <>
-      {showSuggestion && (
+      {isUrgent && (
         <div className="backdrop-blur-xl bg-amber-500/10 border border-amber-400/20 rounded-2xl p-3 flex items-center gap-3 animate-fadeIn">
           <span className="text-amber-400 text-lg shrink-0">⚠️</span>
           <div className="flex-1 min-w-0">
@@ -391,24 +404,28 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
             <p className="text-amber-400/60 text-xs">Move to top?</p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={() => { onMoveTop(promo.id); suggestionDismissed.current = true; setShowSuggestion(false); }} className="text-xs bg-amber-400/20 hover:bg-amber-400/40 text-amber-300 px-2 py-1 rounded-lg transition-all">Yes</button>
-            <button onClick={() => { suggestionDismissed.current = true; setShowSuggestion(false); }} className="text-xs text-amber-400/40 hover:text-amber-300 px-2 py-1 transition-all">No</button>
+            <button onClick={() => { onMoveTop(promo.id); onDismissSuggestion(promo.id); }} className="text-xs bg-amber-400/20 hover:bg-amber-400/40 text-amber-300 px-2 py-1 rounded-lg transition-all">Yes</button>
+            <button onClick={() => onDismissSuggestion(promo.id)} className="text-xs text-amber-400/40 hover:text-amber-300 px-2 py-1 transition-all">No</button>
           </div>
         </div>
       )}
 
       <div
+        data-promoid={promo.id}
         draggable
         onDragStart={() => onDragStart(promo.id)}
         onDragEnter={() => onDragEnter(promo.id)}
         onDragEnd={onDragEnd}
         onDragOver={e => e.preventDefault()}
-        className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing select-none`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden ${isLongPressing ? "cursor-grabbing" : "cursor-grab"} select-none`}
         style={{
           transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : "scale(1)",
           opacity: isDragging ? 0.5 : 1,
           transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
-          boxShadow: isDragging ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
+          boxShadow: isDragging || isLongPressing ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
           animation: !isDragging && isOver ? "jiggle 0.3s ease infinite" : undefined,
         }}
       >
@@ -426,7 +443,6 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
           </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline).toLocaleDateString()}</p>}
-            {/* FIX 3: audio link */}
             {promo.audio_link && (
               <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors">🎵 Listen</a>
             )}
@@ -461,6 +477,8 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [dragId, setDragId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [orderedIds, setOrderedIds] = useState([]);
+  const [dismissedIds, setDismissedIds] = useState(new Set());
+  const onDismissSuggestion = (id) => setDismissedIds(prev => new Set([...prev, id]));
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
     if (b.priority !== a.priority) return b.priority - a.priority;
@@ -522,6 +540,8 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
             onComplete={(promo) => setCompletingPromo(promo)}
             onDelete={onDelete} onTogglePriority={onTogglePriority}
             onEdit={(promo) => setEditingPromo(promo)} onMoveTop={onMoveTop}
+            dismissedIds={dismissedIds}
+            onDismissSuggestion={onDismissSuggestion}
           />
         ))}
       </div>
