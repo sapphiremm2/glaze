@@ -41,10 +41,22 @@ const themes = {
     text: "text-stone-800",
     subtext: "text-stone-500",
     muted: "text-stone-400",
+  },
+  pink: {
+    bg: "bg-[#1a0a10]",
+    bgStyle: {
+      background: "#1a0a10",
+      backgroundImage: "radial-gradient(ellipse 80% 60% at 20% 10%, rgba(244,114,182,0.20) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(236,72,153,0.14) 0%, transparent 55%)"
+    },
+    card: "backdrop-blur-xl bg-pink-400/5 border border-pink-300/10 rounded-2xl p-5",
+    base: "backdrop-blur-xl bg-pink-400/5 border border-pink-300/10 rounded-2xl",
+    input: "w-full bg-pink-400/5 border border-pink-300/15 rounded-xl px-4 py-3 text-white placeholder-pink-300/30 focus:outline-none focus:border-pink-400/60 focus:bg-pink-400/10 transition-all",
+    btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
+    text: "text-white",
+    subtext: "text-pink-200/60",
+    muted: "text-pink-300/30",
   }
 };
-
-const ThemeCtx = { current: "dark" };
 
 // ─── Confetti ────────────────────────────────────────────────
 function Confetti({ onDone }) {
@@ -209,9 +221,9 @@ function AuthScreen({ onAuth }) {
 // ─── Overlay ─────────────────────────────────────────────────
 function Overlay({ onClose, children }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-      <div className="relative w-full flex justify-center" onClick={e => e.stopPropagation()}>{children}</div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+      <div className="relative w-full max-w-md mx-auto" onClick={e => e.stopPropagation()}>{children}</div>
     </div>
   );
 }
@@ -617,12 +629,15 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
       {/* Theme toggle */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>🎨 Theme</p>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button onClick={() => onThemeChange("dark")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "dark" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>
             🌙 Dark
           </button>
-          <button onClick={() => onThemeChange("light")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "light" ? "bg-violet-500/80 border-violet-500 text-white" : "border-black/10 text-stone-400 hover:text-stone-600 bg-black/5"}`}>
+          <button onClick={() => onThemeChange("light")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "light" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>
             ☀️ Light
+          </button>
+          <button onClick={() => onThemeChange("pink")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "pink" ? "bg-pink-500/80 border-pink-500 text-white" : "border-white/10 text-white/40 hover:text-pink-300 bg-white/5"}`}>
+            🌸 Pink
           </button>
         </div>
       </div>
