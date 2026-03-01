@@ -221,11 +221,12 @@ function AuthScreen({ onAuth }) {
 
 // ─── Overlay ─────────────────────────────────────────────────
 function Overlay({ onClose, children }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
-      <div className="relative w-full max-w-md mx-auto" onClick={e => e.stopPropagation()}>{children}</div>
-    </div>
+  return createPortal(
+    <div style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}} onClick={onClose}>
+      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(24px)",animation:"fadeIn 0.2s ease forwards"}} />
+      <div style={{position:"relative",width:"100%",maxWidth:"448px",margin:"0 auto"}} onClick={e => e.stopPropagation()}>{children}</div>
+    </div>,
+    document.body
   );
 }
 
@@ -249,7 +250,7 @@ function AddPromoModal({ onClose, onAdd, pastClients, theme }) {
 
   return (
     <Overlay onClose={onClose}>
-      <div className={`${g.card} w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+      <div className={`${g.card} w-full space-y-4 max-h-[90vh] overflow-y-auto animate-popIn`} onClick={e => e.stopPropagation()}>
         <h2 className={`text-xl font-bold ${g.text}`}>New Promo</h2>
         <form onSubmit={submit} className="space-y-3">
           <input className={g.input} placeholder="Song name" value={form.song_name} onChange={e => set("song_name", e.target.value)} required />
