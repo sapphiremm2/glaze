@@ -250,7 +250,7 @@ function AddPromoModal({ onClose, onAdd, pastClients, theme }) {
 
   return (
     <Overlay onClose={onClose}>
-      <div className={`${g.card} w-full space-y-4 max-h-[90vh] overflow-y-auto animate-popIn`} onClick={e => e.stopPropagation()}>
+      <div className={`${g.card} space-y-4 max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <h2 className={`text-xl font-bold ${g.text}`}>New Promo</h2>
         <form onSubmit={submit} className="space-y-3">
           <input className={g.input} placeholder="Song name" value={form.song_name} onChange={e => set("song_name", e.target.value)} required />
@@ -318,7 +318,7 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
 
   return (
     <Overlay onClose={onClose}>
-      <div className={`${g.card} w-full max-w-md space-y-5`} onClick={e => e.stopPropagation()}>
+      <div className={`${g.card} space-y-5`} onClick={e => e.stopPropagation()}>
         <h2 className={`text-xl font-bold ${g.text}`}>Mark Complete 🎉</h2>
         <p className={`${g.subtext} text-sm`}>{promo.song_name || promo.client_name} · {fmt(promo.amount)}</p>
         <form onSubmit={submit} className="space-y-4">
@@ -337,19 +337,216 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
   );
 }
 
+// ─── Edit Promo Modal ───────────────────────────────────────
+function EditPromoModal({ promo, onClose, onSave, theme }) {
+  const g = themes[theme];
+  const [form, setForm] = useState({
+    song_name: promo.song_name || "",
+    audio_link: promo.audio_link || "",
+    amount: promo.amount || "",
+    client_name: promo.client_name || "",
+    deadline: promo.deadline || promo.due_date || "",
+    priority: promo.priority || false,
+  });
+  const [loading, setLoading] = useState(false);
+  const set = (k,v) => setForm(f => ({...f,[k]:v}));
+
+  const submit = async (e) => {
+    e.preventDefault(); setLoading(true);
+    await onSave(promo.id, { ...form, amount: parseFloat(form.amount)||0, due_date: form.deadline||null });
+    setLoading(false); onClose();
+  };
+
+  return (
+    <Overlay onClose={onClose}>
+      <div className={`${g.card} space-y-4 max-h-[90vh] overflow-y-auto animate-popIn`} onClick={e => e.stopPropagation()}>
+        <h2 className={`text-xl font-bold ${g.text}`}>Edit Promo</h2>
+        <form onSubmit={submit} className="space-y-3">
+          <input className={g.input} placeholder="Song name" value={form.song_name} onChange={e => set("song_name", e.target.value)} />
+          <input className={g.input} placeholder="Link to audio" value={form.audio_link} onChange={e => set("audio_link", e.target.value)} />
+          <input className={g.input} type="number" placeholder="Amount ($)" value={form.amount} onChange={e => set("amount", e.target.value)} min="0" step="0.01" />
+          <input className={g.input} placeholder="Client name" value={form.client_name} onChange={e => set("client_name", e.target.value)} />
+          <input className={g.input} placeholder="Deadline (YYYY-MM-DD)" value={form.deadline} onChange={e => set("deadline", e.target.value)} />
+          <label className="flex items-center gap-3 text-white/70 cursor-pointer">
+            <div onClick={() => set("priority", !form.priority)} className={`w-10 h-6 rounded-full transition-colors ${form.priority ? "bg-violet-500" : "bg-white/15"} relative`}>
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.priority ? "translate-x-5" : "translate-x-1"}`} />
+            </div>
+            Priority
+          </label>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className={`${g.btn} flex-1 bg-white/5 hover:bg-white/10 ${g.text}`}>Cancel</button>
+            <button type="submit" disabled={loading} className={`${g.btn} flex-1 bg-violet-500/80 hover:bg-violet-500 text-white`}>{loading ? "…" : "Save Changes"}</button>
+          </div>
+        </form>
+      </div>
+    </Overlay>
+  );
+}
+
+// ─── Delete Confirm Modal ────────────────────────────────────
+function DeleteConfirmModal({ onClose, onConfirm, theme }) {
+  const g = themes[theme];
+  return (
+    <Overlay onClose={onClose}>
+      <div className={`${g.card} space-y-4 animate-popIn`} onClick={e => e.stopPropagation()}>
+        <h2 className={`text-lg font-bold ${g.text}`}>Delete promo?</h2>
+        <p className={`${g.subtext} text-sm`}>This can't be undone.</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className={`${g.btn} flex-1 bg-white/5 hover:bg-white/10 ${g.text}`}>Cancel</button>
+          <button onClick={onConfirm} className={`${g.btn} flex-1 bg-rose-500/80 hover:bg-rose-500 text-white`}>Delete</button>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ─── Promo Card ──────────────────────────────────────────────
+function PromoCard({ promo, index, total, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd, onTouchStart, onTouchMove, onTouchEnd }) {
+  const g = themes[theme];
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  const [swipeX, setSwipeX] = useState(0);
+  const touchStartX = useRef(null);
+  const cardRef = useRef(null);
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const deadline = promo.deadline || promo.due_date;
+  const deadlineDate = deadline ? new Date(deadline) : null;
+  if (deadlineDate) deadlineDate.setHours(0,0,0,0);
+  const isDueToday = deadlineDate && deadlineDate.getTime() === today.getTime();
+  const daysUntil = deadlineDate ? Math.ceil((deadlineDate - today) / 86400000) : null;
+  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0;
+
+  useEffect(() => {
+    if (isUrgent) { setTimeout(() => setShowSuggestion(true), 600); }
+  }, [isUrgent]);
+
+  // Touch swipe for mobile complete
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchMove = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = touchStartX.current - e.touches[0].clientX;
+    if (dx > 0) setSwipeX(Math.min(dx, 100));
+  };
+  const handleTouchEnd = () => {
+    if (swipeX > 70) { onComplete(promo); }
+    setSwipeX(0); touchStartX.current = null;
+  };
+
+  const isDragging = dragging === promo.id;
+  const isOver = dragOver === promo.id;
+
+  return (
+    <>
+      {showSuggestion && (
+        <div className="backdrop-blur-xl bg-amber-500/10 border border-amber-400/20 rounded-2xl p-3 flex items-center gap-3 animate-fadeIn">
+          <span className="text-amber-400 text-lg shrink-0">⚠️</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-amber-300 text-xs font-medium">Due {daysUntil === 0 ? "today" : `in ${daysUntil} day${daysUntil===1?"":"s"}`} · {fmt(promo.amount)}</p>
+            <p className="text-amber-400/60 text-xs">Move to top?</p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={() => { onMoveTop(promo.id); setShowSuggestion(false); }} className="text-xs bg-amber-400/20 hover:bg-amber-400/40 text-amber-300 px-2 py-1 rounded-lg transition-all">Yes</button>
+            <button onClick={() => setShowSuggestion(false)} className="text-xs text-amber-400/40 hover:text-amber-300 px-2 py-1 transition-all">No</button>
+          </div>
+        </div>
+      )}
+
+      <div
+        ref={cardRef}
+        draggable
+        onDragStart={() => onDragStart(promo.id)}
+        onDragEnter={() => onDragEnter(promo.id)}
+        onDragEnd={onDragEnd}
+        onDragOver={e => e.preventDefault()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing select-none`}
+        style={{
+          transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : swipeX > 0 ? `translateX(-${swipeX}px)` : "scale(1)",
+          opacity: isDragging ? 0.5 : 1,
+          transition: swipeX > 0 ? "none" : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
+          boxShadow: isDragging ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
+          animation: !isDragging && isOver ? "jiggle 0.3s ease infinite" : undefined,
+        }}
+      >
+        {/* Swipe reveal checkmark */}
+        {swipeX > 0 && (
+          <div className="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center bg-emerald-500/20 rounded-r-2xl">
+            <span style={{opacity: swipeX/100, fontSize:"1.5rem"}}>✓</span>
+          </div>
+        )}
+
+        {p_priority_bar(promo)}
+
+        <div className="flex-1 min-w-0 ml-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-semibold ${g.text} truncate ${isDueToday ? "animate-pulse text-rose-400" : ""}`}>
+              {promo.song_name || promo.client_name}
+            </span>
+            {promo.client_name && promo.song_name && (
+              <span className={`text-[11px] ${g.muted} bg-white/10 px-2 py-0.5 rounded-full`}>{promo.client_name}</span>
+            )}
+            {isDueToday && <span className="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full animate-pulse">due today</span>}
+          </div>
+          {deadline && (
+            <p className={`text-xs mt-0.5 ${isDueToday ? "text-rose-400" : g.muted}`}>
+              Due {new Date(deadline).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+
+        <span className="text-emerald-500 font-bold shrink-0">{fmt(promo.amount)}</span>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={() => onTogglePriority(promo.id, !promo.priority)} className={`text-base transition-all ${promo.priority ? "opacity-100" : "opacity-25 hover:opacity-60"}`}>⚡</button>
+          <button onClick={() => onEdit(promo)} className={`text-xs ${g.muted} hover:text-violet-400 px-1.5 py-1.5 rounded-lg transition-all`}>✏️</button>
+          <button onClick={() => onComplete(promo)} className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
+          <button onClick={() => setConfirmDelete(true)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none px-1`}>×</button>
+        </div>
+      </div>
+
+      {confirmDelete && (
+        <DeleteConfirmModal
+          theme={theme}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => { onDelete(promo.id); setConfirmDelete(false); }}
+        />
+      )}
+    </>
+  );
+}
+
+function p_priority_bar(promo) {
+  if (!promo.priority) return null;
+  return <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-fuchsia-500 rounded-l-2xl" />;
+}
+
 // ─── Home Tab ────────────────────────────────────────────────
-function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriority, onDelete, pastClients, theme }) {
+function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriority, onDelete, onEdit, onMoveTop, pastClients, theme }) {
   const g = themes[theme];
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState(goal);
   const [completingPromo, setCompletingPromo] = useState(null);
-  const [showAdd, setShowAdd] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [editingPromo, setEditingPromo] = useState(null);
+  const [dragId, setDragId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const [orderedIds, setOrderedIds] = useState([]);
 
-  const activePromos = promos.filter(p => !p.completed).sort((a,b) => {
+  const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
     if (b.priority !== a.priority) return b.priority - a.priority;
-    return new Date(a.deadline||"9999") - new Date(b.deadline||"9999");
+    return new Date(a.deadline||a.due_date||"9999") - new Date(b.deadline||b.due_date||"9999");
   });
+
+  useEffect(() => {
+    setOrderedIds(basePromos.map(p => p.id));
+  }, [promos]);
+
+  const activePromos = orderedIds.length
+    ? orderedIds.map(id => basePromos.find(p => p.id === id)).filter(Boolean)
+    : basePromos;
 
   const monthEarned = promos.filter(p => p.completed && monthKey(p.completed_at) === thisMonth()).reduce((s,p) => s+p.amount, 0);
   const pct = Math.min(100, Math.round((monthEarned/(goal||1))*100));
@@ -360,6 +557,22 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
     setShowConfetti(true);
   };
 
+  const handleDragStart = (id) => setDragId(id);
+  const handleDragEnter = (id) => {
+    if (id === dragId) return;
+    setDragOverId(id);
+    setOrderedIds(prev => {
+      const arr = [...prev];
+      const from = arr.indexOf(dragId);
+      const to = arr.indexOf(id);
+      if (from === -1 || to === -1) return prev;
+      arr.splice(from, 1);
+      arr.splice(to, 0, dragId);
+      return arr;
+    });
+  };
+  const handleDragEnd = () => { setDragId(null); setDragOverId(null); };
+
   return (
     <div className="space-y-5 pb-32">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
@@ -368,24 +581,13 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
       <div className={`${g.card} space-y-3`}>
         <div className="flex items-center justify-between text-sm">
           <span className={g.subtext}>{pct}% this month</span>
-          <button
-            className="flex items-center gap-1.5 font-semibold text-violet-400 hover:text-violet-300 transition-colors group"
-            onClick={() => setEditingGoal(true)}
-          >
+          <button className="flex items-center gap-1.5 font-semibold text-violet-400 hover:text-violet-300 transition-colors group" onClick={() => setEditingGoal(true)}>
             {editingGoal ? (
               <form onSubmit={e => { e.preventDefault(); saveGoal(); }} onClick={e => e.stopPropagation()}>
-                <input
-                  className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white w-28 text-right text-sm focus:outline-none focus:border-violet-400"
-                  type="number" value={goalInput} autoFocus
-                  onChange={e => setGoalInput(e.target.value)}
-                  onBlur={saveGoal} min="0"
-                />
+                <input className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white w-28 text-right text-sm focus:outline-none focus:border-violet-400" type="number" value={goalInput} autoFocus onChange={e => setGoalInput(e.target.value)} onBlur={saveGoal} min="0" />
               </form>
             ) : (
-              <>
-                <span>Goal: {fmt(goal)}</span>
-                <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">✏️</span>
-              </>
+              <><span>Goal: {fmt(goal)}</span><span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">✏️</span></>
             )}
           </button>
         </div>
@@ -398,27 +600,28 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
       {/* Promo list */}
       <div className="space-y-3">
         {activePromos.length === 0 && <div className={`text-center ${g.muted} py-12 text-sm`}>no active promos — tap + to add one</div>}
-        {activePromos.map(p => (
-          <div key={p.id} className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden`}>
-            {p.priority && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-fuchsia-500 rounded-l-2xl" />}
-            <div className="flex-1 min-w-0 ml-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`font-semibold ${g.text} truncate`}>{p.song_name || p.client_name}</span>
-                {p.client_name && p.song_name && <span className={`text-[11px] ${g.muted} bg-white/10 px-2 py-0.5 rounded-full`}>{p.client_name}</span>}
-              </div>
-              {p.deadline && <p className={`text-xs ${g.muted} mt-0.5`}>Due {new Date(p.deadline).toLocaleDateString()}</p>}
-            </div>
-            <span className="text-emerald-500 font-bold shrink-0">{fmt(p.amount)}</span>
-            <div className="flex items-center gap-1 shrink-0">
-              <button onClick={() => onTogglePriority(p.id, !p.priority)} className={`text-base transition-all ${p.priority ? "opacity-100" : "opacity-25 hover:opacity-60"}`}>⚡</button>
-              <button onClick={() => setCompletingPromo(p)} className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
-              <button onClick={() => onDelete(p.id)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none px-1`}>×</button>
-            </div>
-          </div>
+        {activePromos.map((p, i) => (
+          <PromoCard
+            key={p.id}
+            promo={p}
+            index={i}
+            total={activePromos.length}
+            theme={theme}
+            dragging={dragId}
+            dragOver={dragOverId}
+            onDragStart={handleDragStart}
+            onDragEnter={handleDragEnter}
+            onDragEnd={handleDragEnd}
+            onComplete={(promo) => setCompletingPromo(promo)}
+            onDelete={onDelete}
+            onTogglePriority={onTogglePriority}
+            onEdit={(promo) => setEditingPromo(promo)}
+            onMoveTop={onMoveTop}
+          />
         ))}
       </div>
 
-      {showAdd && <AddPromoModal onClose={() => setShowAdd(false)} onAdd={onAdd} pastClients={pastClients} theme={theme} />}
+      {editingPromo && <EditPromoModal promo={editingPromo} onClose={() => setEditingPromo(null)} onSave={onEdit} theme={theme} />}
       {completingPromo && <CompletionModal promo={completingPromo} onClose={() => setCompletingPromo(null)} onComplete={handleComplete} theme={theme} />}
     </div>
   );
@@ -918,6 +1121,23 @@ export default function App() {
     await supabase.from("user_settings").upsert({ user_id: user.id, monthly_goal: val });
   };
 
+  const editPromo = async (id, updates) => {
+    const { data } = await supabase.from("promos").update(updates).eq("id", id).select().single();
+    if (data) setPromos(prev => prev.map(p => p.id === id ? data : p));
+  };
+
+  const moveToTop = (id) => {
+    setPromos(prev => {
+      const active = prev.filter(p => !p.completed);
+      const rest = prev.filter(p => p.completed);
+      const idx = active.findIndex(p => p.id === id);
+      if (idx <= 0) return prev;
+      const item = active.splice(idx, 1)[0];
+      active.unshift(item);
+      return [...active, ...rest];
+    });
+  };
+
   const signOut = () => supabase.auth.signOut();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:"#080810"}}><div className="text-white/30 text-sm animate-pulse">loading glaze…</div></div>;
@@ -932,7 +1152,7 @@ export default function App() {
         <p className={`${g.muted} text-sm truncate max-w-[60%]`}>{user.user_metadata?.display_name||user.email}</p>
       </div>
 
-      {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} pastClients={pastClients} theme={theme} />}
+      {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} onMoveTop={moveToTop} pastClients={pastClients} theme={theme} />}
       {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
       {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
       {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
