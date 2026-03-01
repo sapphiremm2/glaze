@@ -25,9 +25,7 @@ const themes = {
     base: "backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl",
     input: "w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-400/60 focus:bg-white/10 transition-all",
     btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
-    text: "text-white",
-    subtext: "text-white/50",
-    muted: "text-white/30",
+    text: "text-white", subtext: "text-white/50", muted: "text-white/30",
   },
   light: {
     bg: "bg-[#faf7f2]",
@@ -39,9 +37,7 @@ const themes = {
     base: "backdrop-blur-xl bg-black/5 border border-black/10 rounded-2xl",
     input: "w-full bg-black/5 border border-black/15 rounded-xl px-4 py-3 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-violet-500/60 focus:bg-black/5 transition-all",
     btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
-    text: "text-stone-800",
-    subtext: "text-stone-500",
-    muted: "text-stone-400",
+    text: "text-stone-800", subtext: "text-stone-500", muted: "text-stone-400",
   },
   pink: {
     bg: "bg-[#1a0a10]",
@@ -53,9 +49,7 @@ const themes = {
     base: "backdrop-blur-xl bg-pink-400/5 border border-pink-300/10 rounded-2xl",
     input: "w-full bg-pink-400/5 border border-pink-300/15 rounded-xl px-4 py-3 text-white placeholder-pink-300/30 focus:outline-none focus:border-pink-400/60 focus:bg-pink-400/10 transition-all",
     btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
-    text: "text-white",
-    subtext: "text-pink-200/60",
-    muted: "text-pink-300/30",
+    text: "text-white", subtext: "text-pink-200/60", muted: "text-pink-300/30",
   }
 };
 
@@ -68,31 +62,22 @@ function Confetti({ onDone }) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const particles = Array.from({ length: 120 }, () => ({
-      x: Math.random() * canvas.width,
-      y: -10,
-      r: Math.random() * 6 + 3,
-      d: Math.random() * 80 + 20,
+      x: Math.random() * canvas.width, y: -10,
+      r: Math.random() * 6 + 3, d: Math.random() * 80 + 20,
       color: ["#8b5cf6","#d946ef","#ec4899","#f59e0b","#10b981","#3b82f6"][Math.floor(Math.random()*6)],
-      tilt: Math.random() * 10 - 10,
-      tiltAngleIncrement: Math.random() * 0.07 + 0.05,
-      tiltAngle: 0,
-      vy: Math.random() * 4 + 3,
+      tilt: Math.random() * 10 - 10, tiltAngleIncrement: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0, vy: Math.random() * 4 + 3,
     }));
     let frame = 0;
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => {
-        p.tiltAngle += p.tiltAngleIncrement;
-        p.y += p.vy;
-        p.tilt = Math.sin(p.tiltAngle) * 12;
-        ctx.beginPath();
-        ctx.fillStyle = p.color;
-        ctx.ellipse(p.x + p.tilt, p.y, p.r, p.r * 0.4, p.tiltAngle, 0, Math.PI * 2);
-        ctx.fill();
+        p.tiltAngle += p.tiltAngleIncrement; p.y += p.vy; p.tilt = Math.sin(p.tiltAngle) * 12;
+        ctx.beginPath(); ctx.fillStyle = p.color;
+        ctx.ellipse(p.x + p.tilt, p.y, p.r, p.r * 0.4, p.tiltAngle, 0, Math.PI * 2); ctx.fill();
       });
       frame++;
-      if (frame < 80) requestAnimationFrame(animate);
-      else onDone();
+      if (frame < 80) requestAnimationFrame(animate); else onDone();
     };
     animate();
   }, []);
@@ -140,15 +125,12 @@ function LandingPage({ onEnter, creators }) {
         </div>
         <h1 style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-6xl sm:text-8xl text-white leading-[0.95] mb-6 max-w-2xl">
           your promo<br />
-          <span style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">empire,</span>
-          <br />tracked.
+          <span style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">empire,</span><br />tracked.
         </h1>
         <p className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
           You edit the videos, land the placements, collect the bags. Glaze keeps your client queue organized, your payments tracked, and your monthly goals in sight.
         </p>
-        <button onClick={onEnter} className="px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide shadow-2xl shadow-white/10">
-          Start tracking free
-        </button>
+        <button onClick={onEnter} className="px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide shadow-2xl shadow-white/10">Start tracking free</button>
         <p className="text-white/20 text-xs mt-4">no credit card needed</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
           {[
@@ -181,18 +163,14 @@ function AuthScreen({ onAuth }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const g = themes.dark;
-
   const submit = async (e) => {
     e.preventDefault(); setLoading(true); setError("");
-    const fn = mode === "login"
-      ? supabase.auth.signInWithPassword({ email, password })
-      : supabase.auth.signUp({ email, password });
+    const fn = mode === "login" ? supabase.auth.signInWithPassword({ email, password }) : supabase.auth.signUp({ email, password });
     const { data, error: err } = await fn;
     setLoading(false);
     if (err) return setError(err.message);
     if (data.user) onAuth(data.user);
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{background:"#080810"}}>
       <div className={`${g.card} w-full max-w-sm space-y-6`}>
@@ -204,15 +182,11 @@ function AuthScreen({ onAuth }) {
           <input className={g.input} type="email" placeholder="email" value={email} onChange={e => setEmail(e.target.value)} required />
           <input className={g.input} type="password" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} required />
           {error && <p className="text-rose-400 text-sm">{error}</p>}
-          <button type="submit" className={`${g.btn} w-full bg-violet-500/80 hover:bg-violet-500 text-white`} disabled={loading}>
-            {loading ? "…" : mode === "login" ? "Sign In" : "Create Account"}
-          </button>
+          <button type="submit" className={`${g.btn} w-full bg-violet-500/80 hover:bg-violet-500 text-white`} disabled={loading}>{loading ? "…" : mode === "login" ? "Sign In" : "Create Account"}</button>
         </form>
         <p className="text-center text-white/40 text-sm">
           {mode === "login" ? "New here? " : "Already have an account? "}
-          <button className="text-violet-400 hover:text-violet-300 transition-colors" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-            {mode === "login" ? "Sign up" : "Sign in"}
-          </button>
+          <button className="text-violet-400 hover:text-violet-300 transition-colors" onClick={() => setMode(mode === "login" ? "signup" : "login")}>{mode === "login" ? "Sign up" : "Sign in"}</button>
         </p>
       </div>
     </div>
@@ -237,17 +211,12 @@ function AddPromoModal({ onClose, onAdd, pastClients, theme }) {
   const [loading, setLoading] = useState(false);
   const [showClientSuggestions, setShowClientSuggestions] = useState(false);
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
-
-  const filteredClients = pastClients.filter(c =>
-    c.toLowerCase().includes(form.client_name.toLowerCase()) && form.client_name.length > 0
-  );
-
+  const filteredClients = pastClients.filter(c => c.toLowerCase().includes(form.client_name.toLowerCase()) && form.client_name.length > 0);
   const submit = async (e) => {
     e.preventDefault(); setLoading(true);
     await onAdd(form);
     setLoading(false); onClose();
   };
-
   return (
     <Overlay onClose={onClose}>
       <div className={`${g.card} space-y-4 max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
@@ -256,37 +225,26 @@ function AddPromoModal({ onClose, onAdd, pastClients, theme }) {
           <input className={g.input} placeholder="Song name" value={form.song_name} onChange={e => set("song_name", e.target.value)} required />
           <input className={g.input} placeholder="Link to audio" value={form.audio_link} onChange={e => set("audio_link", e.target.value)} />
           <input className={g.input} type="number" placeholder="Amount ($)" value={form.amount} onChange={e => set("amount", e.target.value)} required min="0" step="0.01" />
-
-          {/* Client name with autocomplete */}
           <div className="relative">
-            <input
-              className={g.input}
-              placeholder="Client name"
-              value={form.client_name}
+            <input className={g.input} placeholder="Client name" value={form.client_name}
               onChange={e => { set("client_name", e.target.value); setShowClientSuggestions(true); }}
               onFocus={() => setShowClientSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowClientSuggestions(false), 150)}
-            />
+              onBlur={() => setTimeout(() => setShowClientSuggestions(false), 150)} />
             {showClientSuggestions && filteredClients.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-xl bg-gray-900/95 border border-white/15 rounded-xl overflow-hidden z-10">
                 {filteredClients.slice(0,5).map(c => (
-                  <button key={c} type="button" className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 transition-colors" onClick={() => { set("client_name", c); setShowClientSuggestions(false); }}>
-                    {c}
-                  </button>
+                  <button key={c} type="button" className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 transition-colors" onClick={() => { set("client_name", c); setShowClientSuggestions(false); }}>{c}</button>
                 ))}
               </div>
             )}
           </div>
-
           <input className={g.input} placeholder="Deadline (YYYY-MM-DD)" value={form.deadline} onChange={e => set("deadline", e.target.value)} />
-
           <label className="flex items-center gap-3 text-white/70 cursor-pointer">
             <div onClick={() => set("priority", !form.priority)} className={`w-10 h-6 rounded-full transition-colors ${form.priority ? "bg-violet-500" : "bg-white/15"} relative`}>
               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.priority ? "translate-x-5" : "translate-x-1"}`} />
             </div>
             Priority
           </label>
-
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className={`${g.btn} flex-1 bg-white/5 hover:bg-white/10 ${g.text}`}>Cancel</button>
             <button type="submit" disabled={loading} className={`${g.btn} flex-1 bg-violet-500/80 hover:bg-violet-500 text-white`}>{loading ? "…" : "Add Promo"}</button>
@@ -303,7 +261,6 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
   const [link, setLink] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const submit = async (e) => {
     e.preventDefault(); setLoading(true);
     let screenshot_url = null;
@@ -315,7 +272,6 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
     await onComplete(promo.id, { work_link: link, screenshot_url });
     setLoading(false); onClose();
   };
-
   return (
     <Overlay onClose={onClose}>
       <div className={`${g.card} space-y-5`} onClick={e => e.stopPropagation()}>
@@ -341,22 +297,17 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
 function EditPromoModal({ promo, onClose, onSave, theme }) {
   const g = themes[theme];
   const [form, setForm] = useState({
-    song_name: promo.song_name || "",
-    audio_link: promo.audio_link || "",
-    amount: promo.amount || "",
-    client_name: promo.client_name || "",
-    deadline: promo.deadline || promo.due_date || "",
-    priority: promo.priority || false,
+    song_name: promo.song_name || "", audio_link: promo.audio_link || "",
+    amount: promo.amount || "", client_name: promo.client_name || "",
+    deadline: promo.deadline || promo.due_date || "", priority: promo.priority || false,
   });
   const [loading, setLoading] = useState(false);
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
-
   const submit = async (e) => {
     e.preventDefault(); setLoading(true);
     await onSave(promo.id, { ...form, amount: parseFloat(form.amount)||0, due_date: form.deadline||null });
     setLoading(false); onClose();
   };
-
   return (
     <Overlay onClose={onClose}>
       <div className={`${g.card} space-y-4 max-h-[90vh] overflow-y-auto animate-popIn`} onClick={e => e.stopPropagation()}>
@@ -401,13 +352,14 @@ function DeleteConfirmModal({ onClose, onConfirm, theme }) {
 }
 
 // ─── Promo Card ──────────────────────────────────────────────
-function PromoCard({ promo, index, total, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd, onTouchStart, onTouchMove, onTouchEnd }) {
+// FIX 1: No more swipe-to-complete — was fighting mobile drag/scroll
+// FIX 2: suggestionDismissed ref prevents re-showing after dismiss/move
+// FIX 3: 🎵 Listen button for audio_link
+function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd }) {
   const g = themes[theme];
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showSuggestion, setShowSuggestion] = useState(false);
-  const [swipeX, setSwipeX] = useState(0);
-  const touchStartX = useRef(null);
-  const cardRef = useRef(null);
+  const suggestionDismissed = useRef(false);
 
   const today = new Date(); today.setHours(0,0,0,0);
   const deadline = promo.deadline || promo.due_date;
@@ -418,20 +370,13 @@ function PromoCard({ promo, index, total, onComplete, onDelete, onTogglePriority
   const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0;
 
   useEffect(() => {
-    if (isUrgent) { setTimeout(() => setShowSuggestion(true), 600); }
-  }, [isUrgent]);
-
-  // Touch swipe for mobile complete
-  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
-  const handleTouchMove = (e) => {
-    if (touchStartX.current === null) return;
-    const dx = touchStartX.current - e.touches[0].clientX;
-    if (dx > 0) setSwipeX(Math.min(dx, 100));
-  };
-  const handleTouchEnd = () => {
-    if (swipeX > 70) { onComplete(promo); }
-    setSwipeX(0); touchStartX.current = null;
-  };
+    if (isUrgent && !suggestionDismissed.current) {
+      const t = setTimeout(() => setShowSuggestion(true), 600);
+      return () => clearTimeout(t);
+    } else {
+      setShowSuggestion(false);
+    }
+  }, [isUrgent, index]);
 
   const isDragging = dragging === promo.id;
   const isOver = dragOver === promo.id;
@@ -446,39 +391,28 @@ function PromoCard({ promo, index, total, onComplete, onDelete, onTogglePriority
             <p className="text-amber-400/60 text-xs">Move to top?</p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={() => { onMoveTop(promo.id); setShowSuggestion(false); }} className="text-xs bg-amber-400/20 hover:bg-amber-400/40 text-amber-300 px-2 py-1 rounded-lg transition-all">Yes</button>
-            <button onClick={() => setShowSuggestion(false)} className="text-xs text-amber-400/40 hover:text-amber-300 px-2 py-1 transition-all">No</button>
+            <button onClick={() => { onMoveTop(promo.id); suggestionDismissed.current = true; setShowSuggestion(false); }} className="text-xs bg-amber-400/20 hover:bg-amber-400/40 text-amber-300 px-2 py-1 rounded-lg transition-all">Yes</button>
+            <button onClick={() => { suggestionDismissed.current = true; setShowSuggestion(false); }} className="text-xs text-amber-400/40 hover:text-amber-300 px-2 py-1 transition-all">No</button>
           </div>
         </div>
       )}
 
       <div
-        ref={cardRef}
         draggable
         onDragStart={() => onDragStart(promo.id)}
         onDragEnter={() => onDragEnter(promo.id)}
         onDragEnd={onDragEnd}
         onDragOver={e => e.preventDefault()}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing select-none`}
         style={{
-          transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : swipeX > 0 ? `translateX(-${swipeX}px)` : "scale(1)",
+          transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : "scale(1)",
           opacity: isDragging ? 0.5 : 1,
-          transition: swipeX > 0 ? "none" : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
+          transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
           boxShadow: isDragging ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
           animation: !isDragging && isOver ? "jiggle 0.3s ease infinite" : undefined,
         }}
       >
-        {/* Swipe reveal checkmark */}
-        {swipeX > 0 && (
-          <div className="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center bg-emerald-500/20 rounded-r-2xl">
-            <span style={{opacity: swipeX/100, fontSize:"1.5rem"}}>✓</span>
-          </div>
-        )}
-
-        {p_priority_bar(promo)}
+        {promo.priority && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-fuchsia-500 rounded-l-2xl" />}
 
         <div className="flex-1 min-w-0 ml-1">
           <div className="flex items-center gap-2 flex-wrap">
@@ -490,11 +424,13 @@ function PromoCard({ promo, index, total, onComplete, onDelete, onTogglePriority
             )}
             {isDueToday && <span className="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full animate-pulse">due today</span>}
           </div>
-          {deadline && (
-            <p className={`text-xs mt-0.5 ${isDueToday ? "text-rose-400" : g.muted}`}>
-              Due {new Date(deadline).toLocaleDateString()}
-            </p>
-          )}
+          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+            {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline).toLocaleDateString()}</p>}
+            {/* FIX 3: audio link */}
+            {promo.audio_link && (
+              <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors">🎵 Listen</a>
+            )}
+          </div>
         </div>
 
         <span className="text-emerald-500 font-bold shrink-0">{fmt(promo.amount)}</span>
@@ -508,19 +444,10 @@ function PromoCard({ promo, index, total, onComplete, onDelete, onTogglePriority
       </div>
 
       {confirmDelete && (
-        <DeleteConfirmModal
-          theme={theme}
-          onClose={() => setConfirmDelete(false)}
-          onConfirm={() => { onDelete(promo.id); setConfirmDelete(false); }}
-        />
+        <DeleteConfirmModal theme={theme} onClose={() => setConfirmDelete(false)} onConfirm={() => { onDelete(promo.id); setConfirmDelete(false); }} />
       )}
     </>
   );
-}
-
-function p_priority_bar(promo) {
-  if (!promo.priority) return null;
-  return <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-fuchsia-500 rounded-l-2xl" />;
 }
 
 // ─── Home Tab ────────────────────────────────────────────────
@@ -540,9 +467,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
     return new Date(a.deadline||a.due_date||"9999") - new Date(b.deadline||b.due_date||"9999");
   });
 
-  useEffect(() => {
-    setOrderedIds(basePromos.map(p => p.id));
-  }, [promos]);
+  useEffect(() => { setOrderedIds(basePromos.map(p => p.id)); }, [promos]);
 
   const activePromos = orderedIds.length
     ? orderedIds.map(id => basePromos.find(p => p.id === id)).filter(Boolean)
@@ -551,11 +476,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const monthEarned = promos.filter(p => p.completed && monthKey(p.completed_at) === thisMonth()).reduce((s,p) => s+p.amount, 0);
   const pct = Math.min(100, Math.round((monthEarned/(goal||1))*100));
   const saveGoal = () => { onUpdateGoal(parseFloat(goalInput)||0); setEditingGoal(false); };
-
-  const handleComplete = async (id, extra) => {
-    await onComplete(id, extra);
-    setShowConfetti(true);
-  };
+  const handleComplete = async (id, extra) => { await onComplete(id, extra); setShowConfetti(true); };
 
   const handleDragStart = (id) => setDragId(id);
   const handleDragEnter = (id) => {
@@ -563,11 +484,9 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
     setDragOverId(id);
     setOrderedIds(prev => {
       const arr = [...prev];
-      const from = arr.indexOf(dragId);
-      const to = arr.indexOf(id);
+      const from = arr.indexOf(dragId), to = arr.indexOf(id);
       if (from === -1 || to === -1) return prev;
-      arr.splice(from, 1);
-      arr.splice(to, 0, dragId);
+      arr.splice(from, 1); arr.splice(to, 0, dragId);
       return arr;
     });
   };
@@ -576,8 +495,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   return (
     <div className="space-y-5 pb-32">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
-
-      {/* Goal bar */}
       <div className={`${g.card} space-y-3`}>
         <div className="flex items-center justify-between text-sm">
           <span className={g.subtext}>{pct}% this month</span>
@@ -596,31 +513,18 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
         </div>
         <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
       </div>
-
-      {/* Promo list */}
       <div className="space-y-3">
         {activePromos.length === 0 && <div className={`text-center ${g.muted} py-12 text-sm`}>no active promos — tap + to add one</div>}
         {activePromos.map((p, i) => (
-          <PromoCard
-            key={p.id}
-            promo={p}
-            index={i}
-            total={activePromos.length}
-            theme={theme}
-            dragging={dragId}
-            dragOver={dragOverId}
-            onDragStart={handleDragStart}
-            onDragEnter={handleDragEnter}
-            onDragEnd={handleDragEnd}
+          <PromoCard key={p.id} promo={p} index={i} theme={theme}
+            dragging={dragId} dragOver={dragOverId}
+            onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd}
             onComplete={(promo) => setCompletingPromo(promo)}
-            onDelete={onDelete}
-            onTogglePriority={onTogglePriority}
-            onEdit={(promo) => setEditingPromo(promo)}
-            onMoveTop={onMoveTop}
+            onDelete={onDelete} onTogglePriority={onTogglePriority}
+            onEdit={(promo) => setEditingPromo(promo)} onMoveTop={onMoveTop}
           />
         ))}
       </div>
-
       {editingPromo && <EditPromoModal promo={editingPromo} onClose={() => setEditingPromo(null)} onSave={onEdit} theme={theme} />}
       {completingPromo && <CompletionModal promo={completingPromo} onClose={() => setCompletingPromo(null)} onComplete={handleComplete} theme={theme} />}
     </div>
@@ -647,7 +551,6 @@ function StatsTab({ promos, goal, theme }) {
   const bestMonth = [...months].sort((a,b) => b[1]-a[1])[0];
   const sortedMonths = [...months].sort((a,b) => a[0].localeCompare(b[0]));
   const fmtMonth = k => { const [y,m] = k.split("-"); return new Date(y,m-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"}); };
-
   return (
     <div className="space-y-4 pb-32">
       <div className={`${g.card} text-center`}>
@@ -704,7 +607,8 @@ function HistoryTab({ promos, onDelete, theme }) {
             </div>
           </div>
           {p.completed_at && <p className={`text-xs ${g.muted}`}>Completed {new Date(p.completed_at).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</p>}
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
+            {p.audio_link && <a href={p.audio_link} target="_blank" rel="noreferrer" className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2">🎵 Song →</a>}
             {p.work_link && <a href={p.work_link} target="_blank" rel="noreferrer" className="text-xs text-violet-500 hover:text-violet-400 underline underline-offset-2">View Video →</a>}
             {p.screenshot_url && <a href={p.screenshot_url} target="_blank" rel="noreferrer" className="text-xs text-fuchsia-500 hover:text-fuchsia-400 underline underline-offset-2">Payment Proof →</a>}
           </div>
@@ -723,17 +627,12 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   const [loading, setLoading] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
-
-  // Password change with confirmation
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [pwMsg, setPwMsg] = useState("");
-
-  // Email change with confirmation
   const [currentPasswordForEmail, setCurrentPasswordForEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [emailMsg, setEmailMsg] = useState("");
-
   const showMsg = m => { setMsg(m); setTimeout(() => setMsg(""), 3000); };
 
   const updateName = async () => {
@@ -741,35 +640,24 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
     const { error } = await supabase.auth.updateUser({ data: { display_name: displayName } });
     setLoading(false); showMsg(error ? error.message : "Name updated ✓");
   };
-
   const updatePassword = async () => {
-    if (!currentPassword || !newPassword) return;
-    setLoading(true);
-    // Re-authenticate first
+    if (!currentPassword || !newPassword) return; setLoading(true);
     const { error: authErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword });
     if (authErr) { setPwMsg("Current password is incorrect."); setLoading(false); return; }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setLoading(false);
-    setPwMsg(error ? error.message : "Password updated ✓");
-    setCurrentPassword(""); setNewPassword("");
-    setTimeout(() => setPwMsg(""), 3000);
+    setLoading(false); setPwMsg(error ? error.message : "Password updated ✓");
+    setCurrentPassword(""); setNewPassword(""); setTimeout(() => setPwMsg(""), 3000);
   };
-
   const updateEmail = async () => {
-    if (!currentPasswordForEmail || !newEmail) return;
-    setLoading(true);
+    if (!currentPasswordForEmail || !newEmail) return; setLoading(true);
     const { error: authErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPasswordForEmail });
     if (authErr) { setEmailMsg("Password is incorrect."); setLoading(false); return; }
     const { error } = await supabase.auth.updateUser({ email: newEmail });
-    setLoading(false);
-    setEmailMsg(error ? error.message : "Confirmation sent to new email ✓");
-    setCurrentPasswordForEmail(""); setNewEmail("");
-    setTimeout(() => setEmailMsg(""), 4000);
+    setLoading(false); setEmailMsg(error ? error.message : "Confirmation sent to new email ✓");
+    setCurrentPasswordForEmail(""); setNewEmail(""); setTimeout(() => setEmailMsg(""), 4000);
   };
-
   const uploadAvatar = async (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    setLoading(true);
+    const file = e.target.files[0]; if (!file) return; setLoading(true);
     const ext = file.name.split(".").pop();
     const path = `avatars/${user.id}.${ext}`;
     const { error: uploadErr } = await supabase.storage.from("screenshots").upload(path, file, { upsert: true, contentType: file.type });
@@ -778,10 +666,8 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
     const avatarUrl = pub.publicUrl + "?v=" + Date.now();
     const { error: updateErr } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
     if (updateErr) { showMsg("Failed to save avatar"); setLoading(false); return; }
-    setAvatar(avatarUrl);
-    setLoading(false); showMsg("Avatar updated ✓");
+    setAvatar(avatarUrl); setLoading(false); showMsg("Avatar updated ✓");
   };
-
   const submitFeedback = async () => {
     if (!feedbackText.trim()) return;
     const { error } = await supabase.from("feedback").insert([{ user_id: user.id, message: feedbackText.trim() }]);
@@ -790,7 +676,6 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
 
   return (
     <div className="space-y-4 pb-32">
-      {/* Avatar + name */}
       <div className={`${g.card} flex items-center gap-4`}>
         <label className="cursor-pointer relative group shrink-0">
           <div className="w-16 h-16 rounded-2xl bg-white/10 overflow-hidden flex items-center justify-center text-2xl">
@@ -807,13 +692,8 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
           </div>
         </div>
       </div>
-
       {msg && <div className="text-center text-sm text-violet-400">{msg}</div>}
-
-      {/* Current email */}
       <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Current email</p><p className={`${g.subtext} text-sm`}>{user.email}</p></div>
-
-      {/* Change email */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>Change Email</p>
         <input className={g.input} type="password" placeholder="Confirm current password" value={currentPasswordForEmail} onChange={e => setCurrentPasswordForEmail(e.target.value)} />
@@ -821,8 +701,6 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
         {emailMsg && <p className={`text-sm ${emailMsg.includes("✓") ? "text-emerald-500" : "text-rose-400"}`}>{emailMsg}</p>}
         <button onClick={updateEmail} disabled={loading||!newEmail||!currentPasswordForEmail} className={`${g.btn} w-full bg-white/5 hover:bg-white/10 ${g.text} text-sm`}>Update Email</button>
       </div>
-
-      {/* Change password */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>Change Password</p>
         <input className={g.input} type="password" placeholder="Current password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
@@ -830,33 +708,21 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
         {pwMsg && <p className={`text-sm ${pwMsg.includes("✓") ? "text-emerald-500" : "text-rose-400"}`}>{pwMsg}</p>}
         <button onClick={updatePassword} disabled={loading||!currentPassword||!newPassword} className={`${g.btn} w-full bg-white/5 hover:bg-white/10 ${g.text} text-sm`}>Update Password</button>
       </div>
-
-      {/* Theme toggle */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>🎨 Theme</p>
         <div className="flex gap-2">
-          <button onClick={() => onThemeChange("dark")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "dark" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>
-            🌙 Dark
-          </button>
-          <button onClick={() => onThemeChange("light")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "light" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>
-            ☀️ Light
-          </button>
-          <button onClick={() => onThemeChange("pink")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "pink" ? "bg-pink-500/80 border-pink-500 text-white" : "border-white/10 text-white/40 hover:text-pink-300 bg-white/5"}`}>
-            🌸 Pink
-          </button>
+          <button onClick={() => onThemeChange("dark")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "dark" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>🌙 Dark</button>
+          <button onClick={() => onThemeChange("light")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "light" ? "bg-violet-500/80 border-violet-500 text-white" : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"}`}>☀️ Light</button>
+          <button onClick={() => onThemeChange("pink")} className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all border ${theme === "pink" ? "bg-pink-500/80 border-pink-500 text-white" : "border-white/10 text-white/40 hover:text-pink-300 bg-white/5"}`}>🌸 Pink</button>
         </div>
       </div>
-
-      {/* Feedback */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>💬 Send Feedback</p>
         <textarea className={`${g.input} resize-none`} rows={3} placeholder="Tell us what you think, what's broken, or what you'd love to see…" value={feedbackText} onChange={e => setFeedbackText(e.target.value)} />
         {feedbackSent
           ? <p className="text-emerald-500 text-sm text-center">Feedback sent! Thanks 🤍</p>
-          : <button onClick={submitFeedback} disabled={!feedbackText.trim()} className={`${g.btn} w-full bg-violet-500/40 hover:bg-violet-500/70 text-white text-sm`}>Send Feedback</button>
-        }
+          : <button onClick={submitFeedback} disabled={!feedbackText.trim()} className={`${g.btn} w-full bg-violet-500/40 hover:bg-violet-500/70 text-white text-sm`}>Send Feedback</button>}
       </div>
-
       <button onClick={onSignOut} className={`${g.btn} w-full bg-rose-500/20 hover:bg-rose-500/40 text-rose-500 text-sm`}>Sign Out</button>
     </div>
   );
@@ -871,9 +737,7 @@ function AdminPanel({ onSignOut }) {
   const [creators, setCreators] = useState([]);
   const [newCreator, setNewCreator] = useState({ username:"", pfp_url:"", follower_count:"", tiktok_url:"" });
   const [loading, setLoading] = useState(true);
-
   useEffect(() => { loadAll(); }, []);
-
   const loadAll = async () => {
     setLoading(true);
     const [{ data: promoData }, { data: fbData }, { data: creatorData }] = await Promise.all([
@@ -886,8 +750,7 @@ function AdminPanel({ onSignOut }) {
       const userMap = {};
       promoData.forEach(p => {
         if (!userMap[p.user_id]) userMap[p.user_id] = { user_id: p.user_id, total: 0, promos: [] };
-        userMap[p.user_id].total += p.amount;
-        userMap[p.user_id].promos.push(p);
+        userMap[p.user_id].total += p.amount; userMap[p.user_id].promos.push(p);
       });
       setUsers(Object.values(userMap).sort((a,b) => b.total - a.total));
     }
@@ -895,21 +758,17 @@ function AdminPanel({ onSignOut }) {
     if (creatorData) setCreators(creatorData);
     setLoading(false);
   };
-
   const addCreator = async () => {
     if (!newCreator.username) return;
     const { data } = await supabase.from("creators").insert([newCreator]).select().single();
     if (data) { setCreators(prev => [data,...prev]); setNewCreator({ username:"", pfp_url:"", follower_count:"", tiktok_url:"" }); }
   };
-
   const deleteCreator = async (id) => {
     await supabase.from("creators").delete().eq("id", id);
     setCreators(prev => prev.filter(c => c.id !== id));
   };
-
   const g = themes.dark;
   const tabs = [{id:"users",label:"👥 Users"},{id:"promos",label:"📋 Promos"},{id:"feedback",label:"💬 Feedback"},{id:"carousel",label:"🎠 Carousel"}];
-
   return (
     <div className="min-h-screen max-w-2xl mx-auto px-4 pt-6 pb-32" style={themes.dark.bgStyle}>
       <div className="flex items-center justify-between mb-6">
@@ -1043,57 +902,36 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [creators, setCreators] = useState([]);
   const [theme, setTheme] = useState(() => localStorage.getItem("glaze-theme") || "dark");
-
   const g = themes[theme];
 
-  useEffect(() => {
-    localStorage.setItem("glaze-theme", theme);
-  }, [theme]);
+  useEffect(() => { localStorage.setItem("glaze-theme", theme); }, [theme]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    supabase.from("creators").select("*").order("created_at", { ascending: true }).then(({ data }) => {
-      if (data) setCreators(data);
-    });
+    supabase.auth.getSession().then(({ data }) => { setUser(data.session?.user ?? null); setLoading(false); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user ?? null); });
+    supabase.from("creators").select("*").order("created_at", { ascending: true }).then(({ data }) => { if (data) setCreators(data); });
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    loadPromos(); loadSettings();
-  }, [user]);
+  useEffect(() => { if (!user) return; loadPromos(); loadSettings(); }, [user]);
 
   const loadPromos = async () => {
     const { data } = await supabase.from("promos").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     if (data) setPromos(data);
   };
-
   const loadSettings = async () => {
     const { data } = await supabase.from("user_settings").select("monthly_goal").eq("user_id", user.id).single();
     if (data) setGoal(data.monthly_goal);
   };
 
-  // Get unique past client names for autocomplete
   const pastClients = [...new Set(promos.map(p => p.client_name).filter(Boolean))];
 
   const addPromo = async (form) => {
     const payload = {
-      song_name: form.song_name || null,
-      audio_link: form.audio_link || null,
-      client_name: form.client_name || null,
-      platform: "TikTok",
-      amount: parseFloat(form.amount) || 0,
-      due_date: form.deadline || null,
-      notes: null,
-      priority: form.priority || false,
-      user_id: user.id,
-      completed: false,
+      song_name: form.song_name || null, audio_link: form.audio_link || null,
+      client_name: form.client_name || null, platform: "TikTok",
+      amount: parseFloat(form.amount) || 0, due_date: form.deadline || null,
+      notes: null, priority: form.priority || false, user_id: user.id, completed: false,
     };
     const { data, error } = await supabase.from("promos").insert([payload]).select().single();
     if (error) { console.error("Save error:", error); alert("Error: "+error.message); return; }
@@ -1151,12 +989,10 @@ export default function App() {
         <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-500">.</span></h1>
         <p className={`${g.muted} text-sm truncate max-w-[60%]`}>{user.user_metadata?.display_name||user.email}</p>
       </div>
-
       {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} onMoveTop={moveToTop} pastClients={pastClients} theme={theme} />}
       {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
       {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
       {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
-
       <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 px-4">
         <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
           <NavBtn id="home" icon="⚡" label="Queue" active={tab} onClick={setTab} theme={theme} />
