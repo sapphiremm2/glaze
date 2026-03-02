@@ -19,6 +19,7 @@ const ICONS = {
   history: "circle-check-svgrepo-com.svg",
   stats: "chart-column-svgrepo-com.svg",
   user: "circle-user-svgrepo-com.svg",
+  check: "check-svgrepo-com.svg",
   bolt: "bolt-svgrepo-com.svg",
   edit: "pen-svgrepo-com.svg",
   warning: "triangle-exclamation-svgrepo-com.svg",
@@ -804,7 +805,9 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
           <p className={`${g.muted} text-xs mb-1.5 text-center`}>Display name</p>
           <div className="flex gap-2">
             <input className={`${g.input} py-2 text-sm text-center`} value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name" />
-            <button onClick={updateName} disabled={loading} className="px-3 py-2 bg-violet-500/60 hover:bg-violet-500 rounded-xl text-white text-sm transition-all shrink-0">✓</button>
+            <button onClick={updateName} disabled={loading} className="px-3 py-2 bg-violet-500/60 hover:bg-violet-500 rounded-xl text-white text-sm transition-all shrink-0" aria-label="Save display name">
+              <SvgIcon name="check" theme="dark" className="w-4 h-4 opacity-95" alt="" />
+            </button>
           </div>
         </div>
         {msg && <p className="text-sm text-violet-400 animate-fadeIn">{msg}</p>}
