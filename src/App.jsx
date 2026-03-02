@@ -162,9 +162,16 @@ function AuthScreen({ onAuth }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetSent, setResetSent] = useState(false);
   const g = themes.dark;
   const submit = async (e) => {
     e.preventDefault(); setLoading(true); setError("");
+    if (mode === "reset") {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+      setLoading(false);
+      if (err) return setError(err.message);
+      setResetSent(true); return;
+    }
     const fn = mode === "login" ? supabase.auth.signInWithPassword({ email, password }) : supabase.auth.signUp({ email, password });
     const { data, error: err } = await fn;
     setLoading(false);
@@ -176,18 +183,33 @@ function AuthScreen({ onAuth }) {
       <div className={`${g.card} w-full max-w-sm space-y-6`}>
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tighter text-white">glaze<span className="text-violet-400">.</span></div>
-          <p className="text-white/40 text-sm">your promo empire, tracked</p>
+          <p className="text-white/40 text-sm">{mode === "reset" ? "reset your password" : "your promo empire, tracked"}</p>
         </div>
-        <form onSubmit={submit} className="space-y-4">
-          <input className={g.input} type="email" placeholder="email" value={email} onChange={e => setEmail(e.target.value)} required />
-          <input className={g.input} type="password" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} required />
-          {error && <p className="text-rose-400 text-sm">{error}</p>}
-          <button type="submit" className={`${g.btn} w-full bg-violet-500/80 hover:bg-violet-500 text-white`} disabled={loading}>{loading ? "…" : mode === "login" ? "Sign In" : "Create Account"}</button>
-        </form>
-        <p className="text-center text-white/40 text-sm">
-          {mode === "login" ? "New here? " : "Already have an account? "}
-          <button className="text-violet-400 hover:text-violet-300 transition-colors" onClick={() => setMode(mode === "login" ? "signup" : "login")}>{mode === "login" ? "Sign up" : "Sign in"}</button>
-        </p>
+        {resetSent ? (
+          <div className="text-center space-y-4">
+            <p className="text-emerald-400 text-sm">Check your email for a reset link 🤍</p>
+            <button onClick={() => { setMode("login"); setResetSent(false); }} className="text-violet-400 hover:text-violet-300 text-sm transition-colors">Back to sign in</button>
+          </div>
+        ) : (
+          <>
+            <form onSubmit={submit} className="space-y-4">
+              <input className={g.input} type="email" placeholder="email" value={email} onChange={e => setEmail(e.target.value)} required />
+              {mode !== "reset" && <input className={g.input} type="password" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} required />}
+              {error && <p className="text-rose-400 text-sm">{error}</p>}
+              <button type="submit" className={`${g.btn} w-full bg-violet-500/80 hover:bg-violet-500 text-white`} disabled={loading}>
+                {loading ? "…" : mode === "login" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
+              </button>
+            </form>
+            <div className="space-y-2 text-center">
+              <p className="text-white/40 text-sm">
+                {mode === "login" ? "New here? " : mode === "signup" ? "Already have an account? " : ""}
+                {mode !== "reset" && <button className="text-violet-400 hover:text-violet-300 transition-colors" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}>{mode === "login" ? "Sign up" : "Sign in"}</button>}
+              </p>
+              {mode === "login" && <button onClick={() => { setMode("reset"); setError(""); }} className="text-white/25 hover:text-white/50 text-xs transition-colors">Forgot password?</button>}
+              {mode === "reset" && <button onClick={() => { setMode("login"); setError(""); }} className="text-white/25 hover:text-white/50 text-xs transition-colors">Back to sign in</button>}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -580,8 +602,28 @@ function StatsTab({ promos, goal, theme }) {
 function HistoryTab({ promos, onDelete, theme }) {
   const g = themes[theme];
   const completed = promos.filter(p => p.completed).sort((a,b) => new Date(b.completed_at)-new Date(a.completed_at));
+
+  const exportCSV = () => {
+    const headers = ["Song","Client","Amount","Deadline","Completed","Video Link","Audio Link"];
+    const rows = completed.map(p => [
+      p.song_name||"", p.client_name||"",
+      p.amount, p.due_date||p.deadline||"",
+      p.completed_at ? new Date(p.completed_at).toLocaleDateString() : "",
+      p.work_link||"", p.audio_link||""
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `glaze-history-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
   return (
     <div className="space-y-3 pb-32 tab-enter">
+      {completed.length > 0 && (
+        <button onClick={exportCSV} className="w-full py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 text-sm transition-all flex items-center justify-center gap-2">
+          <span>⬇</span> Export CSV
+        </button>
+      )}
       {completed.length === 0 && <div className={`text-center ${g.muted} py-16 text-sm`}>no completed promos yet</div>}
       {completed.map(p => (
         <div key={p.id} className={`${g.card} space-y-3`}>
@@ -757,6 +799,38 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   );
 }
 
+// ─── Creator Row (Admin) ─────────────────────────────────────
+function CreatorRow({ creator, g, onDelete, onUpdate }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ username: creator.username, pfp_url: creator.pfp_url||"", follower_count: creator.follower_count||"", tiktok_url: creator.tiktok_url||"" });
+  const save = async () => { await onUpdate(creator.id, form); setEditing(false); };
+  if (editing) return (
+    <div className={`${g.card} space-y-2`}>
+      <input className={`${g.input} text-sm py-2`} placeholder="Username" value={form.username} onChange={e => setForm(f => ({...f,username:e.target.value}))} />
+      <input className={`${g.input} text-sm py-2`} placeholder="Pic URL" value={form.pfp_url} onChange={e => setForm(f => ({...f,pfp_url:e.target.value}))} />
+      <input className={`${g.input} text-sm py-2`} placeholder="Followers" value={form.follower_count} onChange={e => setForm(f => ({...f,follower_count:e.target.value}))} />
+      <input className={`${g.input} text-sm py-2`} placeholder="TikTok URL" value={form.tiktok_url} onChange={e => setForm(f => ({...f,tiktok_url:e.target.value}))} />
+      <div className="flex gap-2">
+        <button onClick={save} className="flex-1 py-2 bg-violet-500/80 hover:bg-violet-500 text-white text-sm rounded-xl transition-all">Save</button>
+        <button onClick={() => setEditing(false)} className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white/60 text-sm rounded-xl transition-all">Cancel</button>
+      </div>
+    </div>
+  );
+  return (
+    <div className={`${g.card} flex items-center gap-4`}>
+      <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 shrink-0">
+        {creator.pfp_url ? <img src={creator.pfp_url} alt={creator.username} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-sm">👤</div>}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-white font-semibold text-sm">@{creator.username}</p>
+        <p className="text-white/40 text-xs">{creator.follower_count} followers</p>
+      </div>
+      <button onClick={() => setEditing(true)} className="text-white/20 hover:text-violet-400 transition-colors text-sm px-1">✏️</button>
+      <button onClick={() => onDelete(creator.id)} className="text-white/20 hover:text-rose-400 transition-colors text-lg">×</button>
+    </div>
+  );
+}
+
 // ─── Admin Panel ─────────────────────────────────────────────
 function AdminPanel({ onSignOut }) {
   const [tab, setTab] = useState("users");
@@ -880,16 +954,10 @@ function AdminPanel({ onSignOut }) {
           </div>
           <div className="space-y-3">
             {creators.map(c => (
-              <div key={c.id} className={`${g.card} flex items-center gap-4`}>
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 shrink-0">
-                  {c.pfp_url ? <img src={c.pfp_url} alt={c.username} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-sm">👤</div>}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm">@{c.username}</p>
-                  <p className="text-white/40 text-xs">{c.follower_count} followers</p>
-                </div>
-                <button onClick={() => deleteCreator(c.id)} className="text-white/20 hover:text-rose-400 transition-colors text-lg">×</button>
-              </div>
+              <CreatorRow key={c.id} creator={c} g={g} onDelete={deleteCreator} onUpdate={async (id, updates) => {
+                const { data } = await supabase.from("creators").update(updates).eq("id", id).select().single();
+                if (data) setCreators(prev => prev.map(cr => cr.id === id ? data : cr));
+              }} />
             ))}
           </div>
         </div>
