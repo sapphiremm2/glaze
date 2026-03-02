@@ -28,28 +28,16 @@ const themes = {
     text: "text-white", subtext: "text-white/50", muted: "text-white/30",
   },
   light: {
-    bg: "bg-[#faf7f2]",
+    bg: "bg-[#e8f8fc]",
     bgStyle: {
-      background: "#faf7f2",
-      backgroundImage: "radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.06) 0%, transparent 55%)"
+      background: "#e8f8fc",
+      backgroundImage: "radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6,182,212,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(20,184,166,0.10) 0%, transparent 55%)"
     },
-    card: "backdrop-blur-xl bg-black/5 border border-black/10 rounded-2xl p-5",
-    base: "backdrop-blur-xl bg-black/5 border border-black/10 rounded-2xl",
-    input: "w-full bg-black/5 border border-black/15 rounded-xl px-4 py-3 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-violet-500/60 focus:bg-black/5 transition-all",
+    card: "backdrop-blur-xl bg-white/70 border border-cyan-200/60 rounded-2xl p-5",
+    base: "backdrop-blur-xl bg-white/70 border border-cyan-200/60 rounded-2xl",
+    input: "w-full bg-white/80 border border-cyan-300/50 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:bg-white transition-all",
     btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
-    text: "text-stone-800", subtext: "text-stone-500", muted: "text-stone-400",
-  },
-  cyan: {
-    bg: "bg-[#050f12]",
-    bgStyle: {
-      background: "#050f12",
-      backgroundImage: "radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6,182,212,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(20,184,166,0.12) 0%, transparent 55%)"
-    },
-    card: "backdrop-blur-xl bg-cyan-400/5 border border-cyan-300/10 rounded-2xl p-5",
-    base: "backdrop-blur-xl bg-cyan-400/5 border border-cyan-300/10 rounded-2xl",
-    input: "w-full bg-cyan-400/5 border border-cyan-300/15 rounded-xl px-4 py-3 text-white placeholder-cyan-300/30 focus:outline-none focus:border-cyan-400/60 focus:bg-cyan-400/10 transition-all",
-    btn: "px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95",
-    text: "text-white", subtext: "text-cyan-200/60", muted: "text-cyan-300/30",
+    text: "text-slate-800", subtext: "text-slate-600", muted: "text-slate-400",
   },
   pink: {
     bg: "bg-[#1a0a10]",
@@ -459,8 +447,8 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [dragId, setDragId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [orderedIds, setOrderedIds] = useState([]);
-  const [dismissedIds, setDismissedIds] = useState(new Set());
-  const onDismissSuggestion = (id) => setDismissedIds(prev => new Set([...prev, id]));
+  const dismissedIds = useRef(new Set());
+  const onDismissSuggestion = (id) => { dismissedIds.current.add(id); };
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
     if (b.priority !== a.priority) return b.priority - a.priority;
@@ -522,7 +510,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
             onComplete={(promo) => setCompletingPromo(promo)}
             onDelete={onDelete} onTogglePriority={onTogglePriority}
             onEdit={(promo) => setEditingPromo(promo)} onMoveTop={onMoveTop}
-            dismissedIds={dismissedIds} onDismissSuggestion={onDismissSuggestion}
+            dismissedIds={dismissedIds.current} onDismissSuggestion={onDismissSuggestion}
           />
         ))}
       </div>
@@ -737,18 +725,17 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
       {/* Theme */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>🎨 Theme</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-2">
           {[
             {id:"dark", label:"🌙 Dark"},
-            {id:"light", label:"☀️ Light"},
+            {id:"light", label:"🩵 Cyan"},
             {id:"pink", label:"🌸 Pink"},
-            {id:"cyan", label:"🩵 Cyan"},
           ].map(t => (
             <button key={t.id} onClick={() => onThemeChange(t.id)}
-              className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
+              className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
                 theme === t.id
                   ? t.id === "pink" ? "bg-pink-500/80 border-pink-500 text-white scale-[1.02]"
-                  : t.id === "cyan" ? "bg-cyan-500/80 border-cyan-500 text-white scale-[1.02]"
+                  : t.id === "light" ? "bg-cyan-500/80 border-cyan-500 text-white scale-[1.02]"
                   : "bg-violet-500/80 border-violet-500 text-white scale-[1.02]"
                   : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"
               }`}>{t.label}</button>
