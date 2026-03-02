@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -97,7 +97,7 @@ function Confetti({ onDone }) {
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const particles = Array.from({ length: 120 }, () => ({
+    const particles = Array.from({ length: 250 }, () => ({
       x: Math.random() * canvas.width, y: -10,
       r: Math.random() * 6 + 3, d: Math.random() * 80 + 20,
       color: ["#8b5cf6","#d946ef","#ec4899","#f59e0b","#10b981","#3b82f6"][Math.floor(Math.random()*6)],
@@ -173,7 +173,7 @@ function LandingPage({ onEnter, creators }) {
           You edit the videos, land the placements, collect the bags. Glaze keeps your client queue organized, your payments tracked, and your monthly goals in sight.
         </p>
         <button onClick={onEnter} className="px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide shadow-2xl shadow-white/10">Start tracking free</button>
-        <p className="text-white/20 text-xs mt-4">no credit card needed</p>
+        <p className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
           {[
             {icon:"queue",title:"Client Queue",body:"Keep every promo deal organized by deadline and priority. No more lost DMs or forgotten invoices."},
@@ -426,7 +426,7 @@ function DeleteConfirmModal({ onClose, onConfirm, theme }) {
 }
 
 // ─── Promo Card ──────────────────────────────────────────────
-function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdit, onMoveTop, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd, dismissedIds, onDismissSuggestion }) {
+function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdit, theme, dragging, dragOver, onDragStart, onDragEnter, onDragEnd }) {
   const g = themes[theme];
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -435,28 +435,12 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
   const deadlineDate = deadline ? new Date(deadline) : null;
   if (deadlineDate) deadlineDate.setHours(0,0,0,0);
   const isDueToday = deadlineDate && deadlineDate.getTime() === today.getTime();
-  const daysUntil = deadlineDate ? Math.ceil((deadlineDate - today) / 86400000) : null;
-  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0 && index > 0 && dismissedIds && !dismissedIds.has(promo.id);
 
   const isDragging = dragging === promo.id;
   const isOver = dragOver === promo.id;
 
   return (
     <>
-      {isUrgent && (
-        <div className="backdrop-blur-xl bg-amber-500/10 border border-amber-400/20 rounded-2xl p-3 flex items-center gap-3 animate-fadeIn">
-          <SvgIcon name="warning" theme={theme} className="w-5 h-5 opacity-80 shrink-0" alt="" />
-          <div className="flex-1 min-w-0">
-            <p className="text-amber-300 text-xs font-medium">Due {daysUntil === 0 ? "today" : `in ${daysUntil} day${daysUntil===1?"":"s"}`} · {fmt(promo.amount)}</p>
-            <p className="text-amber-400/60 text-xs">Move to top?</p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <button onClick={() => { onMoveTop(promo.id); onDismissSuggestion(promo.id); }} className="text-xs bg-amber-400/20 hover:bg-amber-400/40 text-amber-300 px-2 py-1 rounded-lg transition-all">Yes</button>
-            <button onClick={() => onDismissSuggestion(promo.id)} className="text-xs text-amber-400/40 hover:text-amber-300 px-2 py-1 transition-all">No</button>
-          </div>
-        </div>
-      )}
-
       <div
         draggable
         onDragStart={() => onDragStart(promo.id)}
@@ -486,7 +470,6 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
           </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline).toLocaleDateString()}</p>}
-            {/* FIX 3: audio link */}
             {promo.audio_link && (
               <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors inline-flex items-center gap-1.5">
                 <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
@@ -528,8 +511,9 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [dragId, setDragId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [orderedIds, setOrderedIds] = useState([]);
-  const dismissedIds = useRef(new Set());
-  const onDismissSuggestion = (id) => { dismissedIds.current.add(id); };
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
     if (b.priority !== a.priority) return b.priority - a.priority;
@@ -538,9 +522,19 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 
   useEffect(() => { setOrderedIds(basePromos.map(p => p.id)); }, [promos]);
 
-  const activePromos = orderedIds.length
+  // Filter promos based on search query
+  const filteredPromos = useMemo(() => {
+    if (!searchQuery.trim()) return basePromos;
+    const query = searchQuery.toLowerCase();
+    return basePromos.filter(p => 
+      (p.song_name?.toLowerCase() || "").includes(query) ||
+      (p.client_name?.toLowerCase() || "").includes(query)
+    );
+  }, [basePromos, searchQuery]);
+
+  const activePromos = orderedIds.length && !searchQuery
     ? orderedIds.map(id => basePromos.find(p => p.id === id)).filter(Boolean)
-    : basePromos;
+    : filteredPromos;
 
   const monthEarned = promos.filter(p => p.completed && monthKey(p.completed_at) === thisMonth()).reduce((s,p) => s+p.amount, 0);
   const pct = Math.min(100, Math.round((monthEarned/(goal||1))*100));
@@ -549,7 +543,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 
   const handleDragStart = (id) => setDragId(id);
   const handleDragEnter = (id) => {
-    if (id === dragId) return;
+    if (id === dragId || searchQuery) return; // Disable drag when searching
     setDragOverId(id);
     setOrderedIds(prev => {
       const arr = [...prev];
@@ -564,6 +558,32 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   return (
     <div className="space-y-5 pb-32 tab-enter">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
+      
+      {/* Search Bar */}
+      <div className={`${g.card} py-3`}>
+        <div className="relative">
+          <input
+            className={`${g.input} pr-10`}
+            placeholder="Search by song or client..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className={`${g.muted} text-xs mt-2`}>
+            {filteredPromos.length} result{filteredPromos.length !== 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+
       <div className={`${g.card} space-y-3`}>
         <div className="flex items-center justify-between text-sm">
           <span className={g.subtext}>{pct}% this month</span>
@@ -588,15 +608,27 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
         <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
       </div>
       <div className="space-y-3">
-        {activePromos.length === 0 && <div className={`text-center ${g.muted} py-12 text-sm`}>no active promos — tap + to add one</div>}
+        {activePromos.length === 0 && (
+          <div className={`text-center ${g.muted} py-12 text-sm`}>
+            {searchQuery ? "no promos match your search" : "no active promos — tap + to add one"}
+          </div>
+        )}
         {activePromos.map((p, i) => (
-          <PromoCard key={p.id} promo={p} index={i} theme={theme}
-            dragging={dragId} dragOver={dragOverId}
-            onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd}
+          <PromoCard 
+            key={p.id} 
+            promo={p} 
+            index={i} 
+            theme={theme}
+            dragging={dragId} 
+            dragOver={dragOverId}
+            onDragStart={handleDragStart} 
+            onDragEnter={handleDragEnter} 
+            onDragEnd={handleDragEnd}
             onComplete={(promo) => setCompletingPromo(promo)}
-            onDelete={onDelete} onTogglePriority={onTogglePriority}
-            onEdit={(promo) => setEditingPromo(promo)} onMoveTop={onMoveTop}
-            dismissedIds={dismissedIds.current} onDismissSuggestion={onDismissSuggestion}
+            onDelete={onDelete} 
+            onTogglePriority={onTogglePriority}
+            onEdit={(promo) => setEditingPromo(promo)} 
+            // Removed onMoveTop and dismissedIds props since we removed the suggestion feature
           />
         ))}
       </div>
