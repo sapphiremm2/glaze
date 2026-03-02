@@ -559,7 +559,32 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
     <div className="space-y-5 pb-32 tab-enter">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
       
-      {/* Search Bar */}
+      {/* Goal Section */}
+      <div className={`${g.card} space-y-3`}>
+        <div className="flex items-center justify-between text-sm">
+          <span className={g.subtext}>{pct}% this month</span>
+          <button className="flex items-center gap-1.5 font-semibold text-violet-400 hover:text-violet-300 transition-colors group" onClick={() => setEditingGoal(true)}>
+            {editingGoal ? (
+              <form onSubmit={e => { e.preventDefault(); saveGoal(); }} onClick={e => e.stopPropagation()}>
+                <input className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white w-28 text-right text-sm focus:outline-none focus:border-violet-400" type="number" value={goalInput} autoFocus onChange={e => setGoalInput(e.target.value)} onBlur={saveGoal} min="0" />
+              </form>
+            ) : (
+              <>
+                <span>Goal: {fmt(goal)}</span>
+                <span className="opacity-50 group-hover:opacity-100 transition-opacity">
+                  <SvgIcon name="edit" theme={theme} className="w-3.5 h-3.5 inline-block align-[-2px]" alt="" />
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-700" style={{width:`${pct}%`}} />
+        </div>
+        <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
+      </div>
+
+      {/* Search Bar - NOW UNDER THE GOAL */}
       <div className={`${g.card} py-3`}>
         <div className="relative">
           <input
@@ -584,29 +609,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
         )}
       </div>
 
-      <div className={`${g.card} space-y-3`}>
-        <div className="flex items-center justify-between text-sm">
-          <span className={g.subtext}>{pct}% this month</span>
-          <button className="flex items-center gap-1.5 font-semibold text-violet-400 hover:text-violet-300 transition-colors group" onClick={() => setEditingGoal(true)}>
-            {editingGoal ? (
-              <form onSubmit={e => { e.preventDefault(); saveGoal(); }} onClick={e => e.stopPropagation()}>
-                <input className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white w-28 text-right text-sm focus:outline-none focus:border-violet-400" type="number" value={goalInput} autoFocus onChange={e => setGoalInput(e.target.value)} onBlur={saveGoal} min="0" />
-              </form>
-            ) : (
-              <>
-                <span>Goal: {fmt(goal)}</span>
-                <span className="opacity-50 group-hover:opacity-100 transition-opacity">
-                  <SvgIcon name="edit" theme={theme} className="w-3.5 h-3.5 inline-block align-[-2px]" alt="" />
-                </span>
-              </>
-            )}
-          </button>
-        </div>
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-700" style={{width:`${pct}%`}} />
-        </div>
-        <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
-      </div>
       <div className="space-y-3">
         {activePromos.length === 0 && (
           <div className={`text-center ${g.muted} py-12 text-sm`}>
@@ -628,7 +630,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
             onDelete={onDelete} 
             onTogglePriority={onTogglePriority}
             onEdit={(promo) => setEditingPromo(promo)} 
-            // Removed onMoveTop and dismissedIds props since we removed the suggestion feature
           />
         ))}
       </div>
