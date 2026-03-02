@@ -13,6 +13,41 @@ const monthKey = (d) => { const dt = new Date(d); return `${dt.getFullYear()}-${
 const thisMonth = () => monthKey(new Date());
 const ADMIN_EMAIL = "v7nilz@gmail.com";
 
+// ─── Icons (SVGs in /public/icons) ────────────────────────────
+const ICONS = {
+  queue: "inbox-svgrepo-com.svg",
+  history: "circle-check-svgrepo-com.svg",
+  stats: "chart-column-svgrepo-com.svg",
+  user: "circle-user-svgrepo-com.svg",
+  bolt: "bolt-svgrepo-com.svg",
+  edit: "pen-svgrepo-com.svg",
+  warning: "triangle-exclamation-svgrepo-com.svg",
+  music: "music-svgrepo-com.svg",
+  money: "circle-dollar-svgrepo-com.svg",
+  proof: "image-square-check-svgrepo-com.svg",
+  theme: "palette-svgrepo-com.svg",
+  party: "party-horn-svgrepo-com.svg",
+  download: "arrow-circle-down-svgrepo-com.svg",
+  darkTheme: "stars-svgrepo-com.svg",
+  lightTheme: "sun-svgrepo-com.svg",
+  pinkTheme: "heart-svgrepo-com.svg",
+};
+
+function SvgIcon({ name, theme = "dark", className = "", alt = "" }) {
+  const file = ICONS[name];
+  if (!file) return null;
+  const filter = theme === "light" ? "none" : "invert(1)";
+  return (
+    <img
+      src={`/icons/${file}`}
+      alt={alt}
+      draggable="false"
+      className={className}
+      style={{ filter }}
+    />
+  );
+}
+
 // ─── Theme ───────────────────────────────────────────────────
 const themes = {
   dark: {
@@ -96,7 +131,13 @@ function CreatorCarousel({ creators }) {
           {doubled.map((c,i) => (
             <a key={i} href={c.tiktok_url||"#"} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 w-36 shrink-0 group">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-violet-400/50 transition-colors">
-                {c.pfp_url ? <img src={c.pfp_url} alt={c.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-white/10 flex items-center justify-center text-xl">👤</div>}
+                {c.pfp_url ? (
+                  <img src={c.pfp_url} alt={c.username} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                    <SvgIcon name="user" theme="dark" className="w-7 h-7 opacity-70" alt="" />
+                  </div>
+                )}
               </div>
               <p className="text-white/70 text-xs font-medium">@{c.username}</p>
               <p className="text-white/30 text-[10px]">{c.follower_count} followers</p>
@@ -134,12 +175,12 @@ function LandingPage({ onEnter, creators }) {
         <p className="text-white/20 text-xs mt-4">no credit card needed</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
           {[
-            {icon:"⚡",title:"Client Queue",body:"Keep every promo deal organized by deadline and priority. No more lost DMs or forgotten invoices."},
-            {icon:"💸",title:"Earnings Tracker",body:"See your lifetime earnings, monthly goal progress, and which clients are paying the most."},
-            {icon:"📁",title:"Payment Proof",body:"Attach your TikTok links and payment screenshots to every completed deal."},
+            {icon:"queue",title:"Client Queue",body:"Keep every promo deal organized by deadline and priority. No more lost DMs or forgotten invoices."},
+            {icon:"money",title:"Earnings Tracker",body:"See your lifetime earnings, monthly goal progress, and which clients are paying the most."},
+            {icon:"proof",title:"Payment Proof",body:"Attach your TikTok links and payment screenshots to every completed deal."},
           ].map(f => (
             <div key={f.title} className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-2">
-              <span className="text-2xl">{f.icon}</span>
+              <SvgIcon name={f.icon} theme="dark" className="w-6 h-6 opacity-80" alt="" />
               <p className="text-white font-semibold text-sm">{f.title}</p>
               <p className="text-white/35 text-xs leading-relaxed">{f.body}</p>
             </div>
@@ -297,7 +338,10 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
   return (
     <Overlay onClose={onClose}>
       <div className={`${g.card} space-y-5`} onClick={e => e.stopPropagation()}>
-        <h2 className={`text-xl font-bold ${g.text}`}>Mark Complete 🎉</h2>
+        <h2 className={`text-xl font-bold ${g.text} flex items-center gap-2`}>
+          Mark Complete
+          <SvgIcon name="party" theme={theme} className="w-5 h-5 opacity-80" alt="" />
+        </h2>
         <p className={`${g.subtext} text-sm`}>{promo.song_name || promo.client_name} · {fmt(promo.amount)}</p>
         <form onSubmit={submit} className="space-y-4">
           <input className={g.input} placeholder="Link to your video" value={link} onChange={e => setLink(e.target.value)} />
@@ -307,7 +351,14 @@ function CompletionModal({ promo, onClose, onComplete, theme }) {
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className={`${g.btn} flex-1 bg-white/5 hover:bg-white/10 ${g.text}`}>Cancel</button>
-            <button type="submit" disabled={loading} className={`${g.btn} flex-1 bg-emerald-500/80 hover:bg-emerald-500 text-white`}>{loading ? "…" : "Complete ✓"}</button>
+            <button type="submit" disabled={loading} className={`${g.btn} flex-1 bg-emerald-500/80 hover:bg-emerald-500 text-white`}>
+              {loading ? "…" : (
+                <span className="inline-flex items-center justify-center gap-2">
+                  Complete
+                  <SvgIcon name="history" theme={theme} className="w-4 h-4 opacity-90" alt="" />
+                </span>
+              )}
+            </button>
           </div>
         </form>
       </div>
@@ -393,7 +444,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
     <>
       {isUrgent && (
         <div className="backdrop-blur-xl bg-amber-500/10 border border-amber-400/20 rounded-2xl p-3 flex items-center gap-3 animate-fadeIn">
-          <span className="text-amber-400 text-lg shrink-0">⚠️</span>
+          <SvgIcon name="warning" theme={theme} className="w-5 h-5 opacity-80 shrink-0" alt="" />
           <div className="flex-1 min-w-0">
             <p className="text-amber-300 text-xs font-medium">Due {daysUntil === 0 ? "today" : `in ${daysUntil} day${daysUntil===1?"":"s"}`} · {fmt(promo.amount)}</p>
             <p className="text-amber-400/60 text-xs">Move to top?</p>
@@ -436,7 +487,10 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
             {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline).toLocaleDateString()}</p>}
             {/* FIX 3: audio link */}
             {promo.audio_link && (
-              <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors">🎵 Listen</a>
+              <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors inline-flex items-center gap-1.5">
+                <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
+                Listen
+              </a>
             )}
           </div>
         </div>
@@ -444,8 +498,12 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
         <span className="text-emerald-500 font-bold shrink-0">{fmt(promo.amount)}</span>
 
         <div className="flex items-center gap-1 shrink-0">
-          <button onClick={() => onTogglePriority(promo.id, !promo.priority)} className={`text-base transition-all ${promo.priority ? "opacity-100" : "opacity-25 hover:opacity-60"}`}>⚡</button>
-          <button onClick={() => onEdit(promo)} className={`text-xs ${g.muted} hover:text-violet-400 px-1.5 py-1.5 rounded-lg transition-all`}>✏️</button>
+          <button onClick={() => onTogglePriority(promo.id, !promo.priority)} aria-label="Toggle priority" className={`transition-all ${promo.priority ? "opacity-100" : "opacity-25 hover:opacity-60"}`}>
+            <SvgIcon name="bolt" theme={theme} className="w-5 h-5" alt="" />
+          </button>
+          <button onClick={() => onEdit(promo)} aria-label="Edit promo" className={`text-xs ${g.muted} hover:text-violet-400 px-1.5 py-1.5 rounded-lg transition-all`}>
+            <SvgIcon name="edit" theme={theme} className="w-4 h-4 opacity-80" alt="" />
+          </button>
           <button onClick={() => onComplete(promo)} className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
           <button onClick={() => setConfirmDelete(true)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none px-1`}>×</button>
         </div>
@@ -514,7 +572,12 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
                 <input className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white w-28 text-right text-sm focus:outline-none focus:border-violet-400" type="number" value={goalInput} autoFocus onChange={e => setGoalInput(e.target.value)} onBlur={saveGoal} min="0" />
               </form>
             ) : (
-              <><span>Goal: {fmt(goal)}</span><span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">✏️</span></>
+              <>
+                <span>Goal: {fmt(goal)}</span>
+                <span className="opacity-50 group-hover:opacity-100 transition-opacity">
+                  <SvgIcon name="edit" theme={theme} className="w-3.5 h-3.5 inline-block align-[-2px]" alt="" />
+                </span>
+              </>
             )}
           </button>
         </div>
@@ -621,7 +684,8 @@ function HistoryTab({ promos, onDelete, theme }) {
     <div className="space-y-3 pb-32 tab-enter">
       {completed.length > 0 && (
         <button onClick={exportCSV} className="w-full py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 text-sm transition-all flex items-center justify-center gap-2">
-          <span>⬇</span> Export CSV
+          <SvgIcon name="download" theme={theme} className="w-4 h-4 opacity-80" alt="" />
+          Export CSV
         </button>
       )}
       {completed.length === 0 && <div className={`text-center ${g.muted} py-16 text-sm`}>no completed promos yet</div>}
@@ -639,7 +703,12 @@ function HistoryTab({ promos, onDelete, theme }) {
           </div>
           {p.completed_at && <p className={`text-xs ${g.muted}`}>Completed {new Date(p.completed_at).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</p>}
           <div className="flex gap-3 flex-wrap">
-            {p.audio_link && <a href={p.audio_link} target="_blank" rel="noreferrer" className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2">🎵 Song →</a>}
+            {p.audio_link && (
+              <a href={p.audio_link} target="_blank" rel="noreferrer" className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 inline-flex items-center gap-1.5">
+                <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
+                Song →
+              </a>
+            )}
             {p.work_link && <a href={p.work_link} target="_blank" rel="noreferrer" className="text-xs text-violet-500 hover:text-violet-400 underline underline-offset-2">View Video →</a>}
             {p.screenshot_url && <a href={p.screenshot_url} target="_blank" rel="noreferrer" className="text-xs text-fuchsia-500 hover:text-fuchsia-400 underline underline-offset-2">Payment Proof →</a>}
           </div>
@@ -726,7 +795,7 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
       <div className={`${g.card} flex flex-col items-center gap-4 pt-6 pb-5`}>
         <label className="cursor-pointer relative group">
           <div className="w-24 h-24 rounded-full bg-white/10 overflow-hidden flex items-center justify-center text-4xl ring-2 ring-white/10 group-hover:ring-violet-400/50 transition-all duration-200">
-            {avatar ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" /> : "👤"}
+            {avatar ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" /> : <SvgIcon name="user" theme={theme} className="w-10 h-10 opacity-70" alt="" />}
           </div>
           <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs text-white font-medium">edit</div>
           <input type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
@@ -766,12 +835,15 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
 
       {/* Theme */}
       <div className={`${g.card} space-y-3`}>
-        <p className={`${g.subtext} text-sm font-semibold`}>🎨 Theme</p>
+        <p className={`${g.subtext} text-sm font-semibold flex items-center gap-2`}>
+          <SvgIcon name="theme" theme={theme} className="w-4 h-4 opacity-80" alt="" />
+          Theme
+        </p>
         <div className="flex gap-2">
           {[
-            {id:"dark", label:"🌙 Dark"},
-            {id:"light", label:"🩵 Cyan"},
-            {id:"pink", label:"🌸 Pink"},
+            {id:"dark", label:"Dark", icon:"darkTheme"},
+            {id:"light", label:"Cyan", icon:"lightTheme"},
+            {id:"pink", label:"Pink", icon:"pinkTheme"},
           ].map(t => (
             <button key={t.id} onClick={() => onThemeChange(t.id)}
               className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200 border ${
@@ -780,7 +852,13 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
                   : t.id === "light" ? "bg-cyan-500/80 border-cyan-500 text-white scale-[1.02]"
                   : "bg-violet-500/80 border-violet-500 text-white scale-[1.02]"
                   : "border-white/10 text-white/40 hover:text-white/70 bg-white/5"
-              }`}>{t.label}</button>
+              }`}
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <SvgIcon name={t.icon} theme={theme} className="w-4 h-4 opacity-90" alt="" />
+                {t.label}
+              </span>
+            </button>
           ))}
         </div>
       </div>
@@ -819,13 +897,21 @@ function CreatorRow({ creator, g, onDelete, onUpdate }) {
   return (
     <div className={`${g.card} flex items-center gap-4`}>
       <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 shrink-0">
-        {creator.pfp_url ? <img src={creator.pfp_url} alt={creator.username} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-sm">👤</div>}
+        {creator.pfp_url ? (
+          <img src={creator.pfp_url} alt={creator.username} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <SvgIcon name="user" theme="dark" className="w-5 h-5 opacity-70" alt="" />
+          </div>
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-white font-semibold text-sm">@{creator.username}</p>
         <p className="text-white/40 text-xs">{creator.follower_count} followers</p>
       </div>
-      <button onClick={() => setEditing(true)} className="text-white/20 hover:text-violet-400 transition-colors text-sm px-1">✏️</button>
+      <button onClick={() => setEditing(true)} aria-label="Edit creator" className="text-white/20 hover:text-violet-400 transition-colors px-1">
+        <SvgIcon name="edit" theme="dark" className="w-4 h-4 opacity-80" alt="" />
+      </button>
       <button onClick={() => onDelete(creator.id)} className="text-white/20 hover:text-rose-400 transition-colors text-lg">×</button>
     </div>
   );
@@ -971,7 +1057,7 @@ function NavBtn({ id, icon, label, active, onClick, theme }) {
   const g = themes[theme];
   return (
     <button onClick={() => onClick(id)} className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${active === id ? "bg-violet-500/80 text-white" : `${g.muted} hover:text-violet-400`}`}>
-      <span className="text-base">{icon}</span>
+      <SvgIcon name={icon} theme={theme} className="w-5 h-5 opacity-90" alt="" />
       <span>{label}</span>
     </button>
   );
@@ -1129,11 +1215,11 @@ export default function App() {
       {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
       <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 px-4">
         <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
-          <NavBtn id="home" icon="⚡" label="Queue" active={tab} onClick={setTab} theme={theme} />
-          <NavBtn id="history" icon="✓" label="History" active={tab} onClick={setTab} theme={theme} />
+          <NavBtn id="home" icon="queue" label="Queue" active={tab} onClick={setTab} theme={theme} />
+          <NavBtn id="history" icon="history" label="History" active={tab} onClick={setTab} theme={theme} />
           <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={ctrlN} onOpened={() => setCtrlN(false)} />
-          <NavBtn id="stats" icon="📊" label="Stats" active={tab} onClick={setTab} theme={theme} />
-          <NavBtn id="profile" icon="👤" label="Profile" active={tab} onClick={setTab} theme={theme} />
+          <NavBtn id="stats" icon="stats" label="Stats" active={tab} onClick={setTab} theme={theme} />
+          <NavBtn id="profile" icon="user" label="Profile" active={tab} onClick={setTab} theme={theme} />
         </div>
       </div>
     </div>
