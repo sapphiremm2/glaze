@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from './supabase';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
