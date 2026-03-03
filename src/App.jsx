@@ -235,7 +235,8 @@ function LandingPage({ onEnter, creators, exiting }) {
         <div style={reveal(0.48)}>
           <button
             onClick={onEnter}
-            className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group"
+            className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group select-none"
+            style={{WebkitTapHighlightColor:"transparent", WebkitTouchCallout:"none"}}
           >
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10 scale-110" />
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 opacity-0 group-hover:opacity-60 blur-lg transition-opacity duration-500 -z-10 scale-105" />
@@ -1378,10 +1379,12 @@ export default function App() {
         <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-500">.</span></h1>
         <p className={`${g.muted} text-sm truncate max-w-[60%]`}>{user.user_metadata?.display_name||user.email}</p>
       </div>
-      {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
-      {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
-      {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
-      {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
+      <div key={tab} className="tab-enter">
+        {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
+        {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
+        {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
+        {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
+      </div>
       <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 px-4">
         <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
           <NavBtn id="home" icon="queue" label="Queue" active={tab} onClick={setTab} theme={theme} />
