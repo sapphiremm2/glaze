@@ -648,6 +648,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
         </div>
       </div>
 
+      </div>
       {confirmDelete && (
         <DeleteConfirmModal theme={theme} onClose={() => setConfirmDelete(false)} onConfirm={() => { onDelete(promo.id); setConfirmDelete(false); }} />
       )}
