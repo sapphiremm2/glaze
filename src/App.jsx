@@ -97,26 +97,56 @@ function Confetti({ onDone }) {
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const particles = Array.from({ length: 250 }, () => ({
+    const particles = Array.from({ length: 160 }, () => ({
       x: Math.random() * canvas.width, y: -10,
-      r: Math.random() * 6 + 3, d: Math.random() * 80 + 20,
+      r: Math.random() * 6 + 3,
       color: ["#8b5cf6","#d946ef","#ec4899","#f59e0b","#10b981","#3b82f6"][Math.floor(Math.random()*6)],
-      tilt: Math.random() * 10 - 10, tiltAngleIncrement: Math.random() * 0.07 + 0.05,
-      tiltAngle: 0, vy: Math.random() * 4 + 3,
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncrement: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0,
+      vy: Math.random() * 3 + 1.5,
+      vx: (Math.random() - 0.5) * 1.5,
     }));
+
+    const TOTAL_FRAMES = 220;
+    const FADE_START = 160;
     let frame = 0;
+    let animId;
+
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Global fade out in last stretch
+      const alpha = frame < FADE_START
+        ? 1
+        : 1 - (frame - FADE_START) / (TOTAL_FRAMES - FADE_START);
+
+      ctx.globalAlpha = Math.max(0, alpha);
+
       particles.forEach(p => {
-        p.tiltAngle += p.tiltAngleIncrement; p.y += p.vy; p.tilt = Math.sin(p.tiltAngle) * 12;
-        ctx.beginPath(); ctx.fillStyle = p.color;
-        ctx.ellipse(p.x + p.tilt, p.y, p.r, p.r * 0.4, p.tiltAngle, 0, Math.PI * 2); ctx.fill();
+        p.tiltAngle += p.tiltAngleIncrement;
+        p.y += p.vy;
+        p.x += p.vx;
+        p.tilt = Math.sin(p.tiltAngle) * 12;
+        ctx.beginPath();
+        ctx.fillStyle = p.color;
+        ctx.ellipse(p.x + p.tilt, p.y, p.r, p.r * 0.4, p.tiltAngle, 0, Math.PI * 2);
+        ctx.fill();
       });
+
       frame++;
-      if (frame < 80) requestAnimationFrame(animate); else onDone();
+      if (frame < TOTAL_FRAMES) {
+        animId = requestAnimationFrame(animate);
+      } else {
+        ctx.globalAlpha = 1;
+        onDone();
+      }
     };
-    animate();
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
   }, []);
+
   return <canvas ref={canvasRef} className="fixed inset-0 z-[100] pointer-events-none" />;
 }
 
@@ -127,10 +157,17 @@ function CreatorCarousel({ creators }) {
   return (
     <div className="w-full overflow-hidden py-8">
       <p className="text-center text-white/20 text-xs uppercase tracking-widest mb-6">trusted by creators</p>
-      <div className="relative">
-        <div className="flex gap-6 animate-scroll" style={{width:`${doubled.length*180}px`}}>
-          {doubled.map((c,i) => (
-            <a key={i} href={c.tiktok_url||"#"} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 w-36 shrink-0 group">
+      <div className="relative w-full">
+        <div
+          className="flex gap-6 animate-scroll"
+          style={{
+            width: "max-content",
+            willChange: "transform",
+          }}
+        >
+          {doubled.map((c, i) => (
+            <a key={i} href={c.tiktok_url || "#"} target="_blank" rel="noreferrer"
+              className="flex flex-col items-center gap-2 w-36 shrink-0 group">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-violet-400/50 transition-colors">
                 {c.pfp_url ? (
                   <img src={c.pfp_url} alt={c.username} className="w-full h-full object-cover" />
@@ -145,8 +182,8 @@ function CreatorCarousel({ creators }) {
             </a>
           ))}
         </div>
-        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#080810] to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#080810] to-transparent pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#080810] to-transparent pointer-events-none z-10" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#080810] to-transparent pointer-events-none z-10" />
       </div>
     </div>
   );
@@ -155,6 +192,15 @@ function CreatorCarousel({ creators }) {
 // ─── Landing Page ────────────────────────────────────────────
 function LandingPage({ onEnter, creators, exiting }) {
   const [openFaq, setOpenFaq] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { requestAnimationFrame(() => setMounted(true)); }, []);
+
+  const reveal = (delay) => ({
+    transition: `opacity 0.7s ease ${delay}s, transform 0.7s ease ${delay}s, filter 0.7s ease ${delay}s`,
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? "translateY(0px)" : "translateY(18px)",
+    filter: mounted ? "blur(0px)" : "blur(6px)",
+  });
 
   const faqs = [
     { q: "What is Glaze?", a: "Glaze is a promo tracking tool built specifically for video editors who work with music artists and brands. Keep your client queue organized, track payments, and hit your monthly goals." },
@@ -173,36 +219,47 @@ function LandingPage({ onEnter, creators, exiting }) {
       transform: exiting ? "scale(0.96)" : "scale(1)",
       filter: exiting ? "blur(6px)" : "blur(0px)",
     }}>
-      <nav className="flex items-center justify-between px-8 pt-8 relative z-10">
+
+      {/* Nav */}
+      <nav style={reveal(0)} className="flex items-center justify-between px-8 pt-8 relative z-10">
         <span className="text-xl font-black tracking-tighter text-white">glaze<span className="text-violet-400">.</span></span>
         <button onClick={onEnter} className="text-sm text-white/50 hover:text-white transition-colors">Sign in →</button>
       </nav>
+
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center relative z-10 py-24">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300 text-xs font-medium mb-10 tracking-wide">
+
+        {/* Badge */}
+        <div style={reveal(0.1)} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300 text-xs font-medium mb-10 tracking-wide">
           <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
           built for video editors
         </div>
-        <h1 style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-6xl sm:text-8xl text-white leading-[0.95] mb-6 max-w-2xl">
+
+        {/* Headline */}
+        <h1 style={{fontFamily:"'Coolvetica', sans-serif", ...reveal(0.2)}} className="text-6xl sm:text-8xl text-white leading-[0.95] mb-6 max-w-2xl">
           your promo<br />
           <span style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">empire,</span><br />tracked.
         </h1>
-        <p className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
+
+        {/* Subtext */}
+        <p style={reveal(0.35)} className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
           You edit the videos, land the placements, collect the bags. Glaze keeps your client queue organized, your payments tracked, and your monthly goals in sight.
         </p>
-        
-        {/* Apple Intelligence Glow Button */}
-        <button 
-          onClick={onEnter} 
-          className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group"
-        >
-          {/* Glow effect */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10 scale-110" />
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 opacity-0 group-hover:opacity-60 blur-lg transition-opacity duration-500 -z-10 scale-105" />
-          Start tracking free
-        </button>
-        
-        <p className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
+
+        {/* CTA Button */}
+        <div style={reveal(0.48)}>
+          <button
+            onClick={onEnter}
+            className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group"
+          >
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10 scale-110" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 opacity-0 group-hover:opacity-60 blur-lg transition-opacity duration-500 -z-10 scale-105" />
+            Start tracking free
+          </button>
+          <p className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
+        </div>
+
+        {/* Feature Cards */}
+        <div style={reveal(0.62)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
           {[
             {icon:"queue",title:"Client Queue",body:"Keep every promo deal organized by deadline and priority. No more lost DMs or forgotten invoices."},
             {icon:"money",title:"Earnings Tracker",body:"See your lifetime earnings, monthly goal progress, and which clients are paying the most."},
@@ -215,23 +272,28 @@ function LandingPage({ onEnter, creators, exiting }) {
             </div>
           ))}
         </div>
-        <CreatorCarousel creators={creators} />
+
+        {/* Carousel */}
+        <div style={reveal(0.78)} className="w-full">
+          <CreatorCarousel creators={creators} />
+        </div>
+
       </main>
-      
-      {/* FAQ Section - Always rendered for SEO */}
-      <section className="w-full max-w-2xl mx-auto px-6 pb-20 relative z-10">
+
+      {/* FAQ */}
+      <section style={reveal(0.88)} className="w-full max-w-2xl mx-auto px-6 pb-20 relative z-10">
         <h2 className="text-2xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
             <div key={i} className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-              <button 
+              <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
               >
                 <span className="text-white font-medium text-sm">{faq.q}</span>
                 <span className={`text-white/40 text-lg transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}>⌄</span>
               </button>
-              <div 
+              <div
                 className="overflow-hidden transition-all duration-300 ease-in-out"
                 style={{ maxHeight: openFaq === i ? '200px' : '0', opacity: openFaq === i ? 1 : 0 }}
               >
@@ -242,10 +304,12 @@ function LandingPage({ onEnter, creators, exiting }) {
         </div>
       </section>
 
-      <footer className="text-center pb-10 relative z-10 space-y-1">
+      {/* Footer */}
+      <footer style={reveal(0.95)} className="text-center pb-10 relative z-10 space-y-1">
         <p className="text-white/20 text-xs">made by creators, for creators</p>
         <p className="text-white/15 text-xs">sincerely, sapphire 🤍</p>
       </footer>
+
     </div>
   );
 }
