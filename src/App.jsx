@@ -836,7 +836,19 @@ function StatsTab({ promos, goal, theme }) {
 // ─── History Tab ─────────────────────────────────────────────
 function HistoryTab({ promos, onDelete, theme }) {
   const g = themes[theme];
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const completed = promos.filter(p => p.completed).sort((a,b) => new Date(b.completed_at)-new Date(a.completed_at));
+
+  // Filter based on search
+  const filteredCompleted = useMemo(() => {
+    if (!searchQuery.trim()) return completed;
+    const query = searchQuery.toLowerCase();
+    return completed.filter(p => 
+      (p.song_name?.toLowerCase() || "").includes(query) ||
+      (p.client_name?.toLowerCase() || "").includes(query)
+    );
+  }, [completed, searchQuery]);
 
   const exportCSV = () => {
     const headers = ["Song","Client","Amount","Deadline","Completed","Video Link","Audio Link"];
@@ -855,14 +867,45 @@ function HistoryTab({ promos, onDelete, theme }) {
 
   return (
     <div className="space-y-3 pb-32 tab-enter">
-      {completed.length > 0 && (
+      {/* Search Bar */}
+      <div className={`${g.card} py-3`}>
+        <div className="relative">
+          <input
+            className={`${g.input} pr-10`}
+            placeholder="Search history by song or client..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className={`${g.muted} text-xs mt-2`}>
+            {filteredCompleted.length} result{filteredCompleted.length !== 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+
+      {completed.length > 0 && !searchQuery && (
         <button onClick={exportCSV} className="w-full py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 text-sm transition-all flex items-center justify-center gap-2">
           <SvgIcon name="download" theme={theme} className="w-4 h-4 opacity-80" alt="" />
           Export CSV
         </button>
       )}
-      {completed.length === 0 && <div className={`text-center ${g.muted} py-16 text-sm`}>no completed promos yet</div>}
-      {completed.map(p => (
+      
+      {filteredCompleted.length === 0 && (
+        <div className={`text-center ${g.muted} py-16 text-sm`}>
+          {searchQuery ? "no promos match your search" : "no completed promos yet"}
+        </div>
+      )}
+      
+      {filteredCompleted.map(p => (
         <div key={p.id} className={`${g.card} space-y-3`}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
