@@ -154,6 +154,16 @@ function CreatorCarousel({ creators }) {
 
 // ─── Landing Page ────────────────────────────────────────────
 function LandingPage({ onEnter, creators }) {
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const faqs = [
+    { q: "What is Glaze?", a: "Glaze is a promo tracking tool built specifically for video editors who work with music artists and brands. Keep your client queue organized, track payments, and hit your monthly goals." },
+    { q: "Is it really free?", a: "Yes, 100% free forever. No credit card required, no hidden fees. Built by creators, for creators." },
+    { q: "How do I track my earnings?", a: "Simply add your promos with the amount you're getting paid. Glaze automatically calculates your lifetime earnings, monthly progress, and projections." },
+    { q: "Can I organize by priority?", a: "Absolutely. Drag and drop to reorder, mark promos as priority, and see what's due today at a glance." },
+    { q: "Is my data safe?", a: "Your data is stored securely with Supabase. We never share or sell your information." },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden" style={{background:"#080810",backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.10) 0%, transparent 55%)"}}>
       <nav className="flex items-center justify-between px-8 pt-8 relative z-10">
@@ -172,7 +182,18 @@ function LandingPage({ onEnter, creators }) {
         <p className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
           You edit the videos, land the placements, collect the bags. Glaze keeps your client queue organized, your payments tracked, and your monthly goals in sight.
         </p>
-        <button onClick={onEnter} className="px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide shadow-2xl shadow-white/10">Start tracking free</button>
+        
+        {/* Apple Intelligence Glow Button */}
+        <button 
+          onClick={onEnter} 
+          className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group"
+        >
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10 scale-110" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 opacity-0 group-hover:opacity-60 blur-lg transition-opacity duration-500 -z-10 scale-105" />
+          Start tracking free
+        </button>
+        
         <p className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
           {[
@@ -189,6 +210,31 @@ function LandingPage({ onEnter, creators }) {
         </div>
         <CreatorCarousel creators={creators} />
       </main>
+      
+      {/* FAQ Section - Always rendered for SEO */}
+      <section className="w-full max-w-2xl mx-auto px-6 pb-20 relative z-10">
+        <h2 className="text-2xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
+        <div className="space-y-3">
+          {faqs.map((faq, i) => (
+            <div key={i} className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+              <button 
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+              >
+                <span className="text-white font-medium text-sm">{faq.q}</span>
+                <span className={`text-white/40 text-lg transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}>⌄</span>
+              </button>
+              <div 
+                className="overflow-hidden transition-all duration-300 ease-in-out"
+                style={{ maxHeight: openFaq === i ? '200px' : '0', opacity: openFaq === i ? 1 : 0 }}
+              >
+                <p className="text-white/50 text-sm px-4 pb-4 leading-relaxed">{faq.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <footer className="text-center pb-10 relative z-10 space-y-1">
         <p className="text-white/20 text-xs">made by creators, for creators</p>
         <p className="text-white/15 text-xs">sincerely, sapphire 🤍</p>
@@ -198,7 +244,7 @@ function LandingPage({ onEnter, creators }) {
 }
 
 // ─── Auth Screen ─────────────────────────────────────────────
-function AuthScreen({ onAuth }) {
+function AuthScreen({ onAuth, onBack }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -235,11 +281,11 @@ function AuthScreen({ onAuth }) {
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{background:"#080810"}}>
       <div className={`${g.card} w-full max-w-sm space-y-6`}>
+        <button onClick={onBack} className="text-white/30 hover:text-white transition-colors text-sm">← Back</button>
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tighter text-white">glaze<span className="text-violet-400">.</span></div>
           <p className="text-white/40 text-sm">{mode === "reset" ? "reset your password" : "your promo empire, tracked"}</p>
         </div>
-
         {resetSent ? (
           <div className="text-center space-y-4">
             <p className="text-emerald-400 text-sm">Check your email for a reset link 🤍</p>
@@ -247,13 +293,9 @@ function AuthScreen({ onAuth }) {
           </div>
         ) : (
           <>
-            {/* Google Sign In - Only on login mode */}
             {mode === "login" && (
               <>
-                <button 
-                  onClick={signInWithGoogle}
-                  className={`${g.btn} w-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-3 border border-white/10`}
-                >
+                <button onClick={signInWithGoogle} className={`${g.btn} w-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-3 border border-white/10`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -262,7 +304,6 @@ function AuthScreen({ onAuth }) {
                   </svg>
                   Continue with Google
                 </button>
-
                 <div className="flex items-center gap-3 my-4">
                   <div className="flex-1 h-px bg-white/10" />
                   <span className="text-white/30 text-xs">or</span>
@@ -270,7 +311,6 @@ function AuthScreen({ onAuth }) {
                 </div>
               </>
             )}
-
             <form onSubmit={submit} className="space-y-4">
               <input className={g.input} type="email" placeholder="email" value={email} onChange={e => setEmail(e.target.value)} required />
               {mode !== "reset" && <input className={g.input} type="password" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} required />}
@@ -293,6 +333,7 @@ function AuthScreen({ onAuth }) {
     </div>
   );
 }
+
 // ─── Overlay ─────────────────────────────────────────────────
 function Overlay({ onClose, children }) {
   return createPortal(
@@ -1272,7 +1313,7 @@ export default function App() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:"#080810"}}><div className="text-white/30 text-sm animate-pulse">loading glaze…</div></div>;
   if (!user && showLanding) return <LandingPage onEnter={() => setShowLanding(false)} creators={creators} />;
-  if (!user) return <AuthScreen onAuth={setUser} />;
+  if (!user) return <AuthScreen onAuth={setUser} onBack={() => setShowLanding(true)} />;
   if (user.email === ADMIN_EMAIL) return <AdminPanel onSignOut={signOut} />;
 
   return (
