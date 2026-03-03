@@ -1,5 +1,9 @@
 {
-    "rewrites": [
-      { "source": "/auth/callback", "destination": "/index.html" }
+    "routes": [
+      { "src": "/assets/(.*)", "dest": "/assets/$1" },
+      { "src": "/icons/(.*)", "dest": "/icons/$1" },
+      { "src": "/(.*)\\.(.+)", "dest": "/$1.$2" },
+      { "src": "/(.*)", "dest": "/index.html" }
     ]
   }
+  
