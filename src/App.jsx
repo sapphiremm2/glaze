@@ -109,14 +109,10 @@ function Confetti({ onDone }) {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Global fade out in last stretch
       const alpha = frame < FADE_START
         ? 1
         : 1 - (frame - FADE_START) / (TOTAL_FRAMES - FADE_START);
-
       ctx.globalAlpha = Math.max(0, alpha);
-
       particles.forEach(p => {
         p.tiltAngle += p.tiltAngleIncrement;
         p.y += p.vy;
@@ -127,7 +123,6 @@ function Confetti({ onDone }) {
         ctx.ellipse(p.x + p.tilt, p.y, p.r, p.r * 0.4, p.tiltAngle, 0, Math.PI * 2);
         ctx.fill();
       });
-
       frame++;
       if (frame < TOTAL_FRAMES) {
         animId = requestAnimationFrame(animate);
@@ -154,10 +149,7 @@ function CreatorCarousel({ creators }) {
       <div className="relative w-full">
         <div
           className="flex gap-6 animate-scroll"
-          style={{
-            width: "max-content",
-            willChange: "transform",
-          }}
+          style={{ width: "max-content", willChange: "transform" }}
         >
           {doubled.map((c, i) => (
             <a key={i} href={c.tiktok_url || "#"} target="_blank" rel="noreferrer"
@@ -302,6 +294,7 @@ function LandingPage({ onEnter, creators, exiting }) {
       <footer style={reveal(0.95)} className="text-center pb-10 relative z-10 space-y-1">
         <p className="text-white/20 text-xs">made by creators, for creators</p>
         <p className="text-white/15 text-xs">sincerely, sapphire 🤍</p>
+        <a href="mailto:support@glaze.boo" className="text-white/15 hover:text-white/40 text-xs transition-colors block">support@glaze.boo</a>
       </footer>
 
     </div>
@@ -321,9 +314,7 @@ function AuthScreen({ onAuth, onBack }) {
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { 
-        redirectTo: 'https://glaze.boo/auth/callback'
-      }
+      options: { redirectTo: 'https://glaze.boo/auth/callback' }
     });
     if (error) setError(error.message);
   };
@@ -347,10 +338,7 @@ function AuthScreen({ onAuth, onBack }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{background:"#080810"}}>
-      {/* Background that scales + blurs as card comes up */}
       <div style={{position:"absolute",inset:0,zIndex:0,backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.10) 0%, transparent 55%)"}} />
-
-      {/* Card */}
       <div
         className={`${g.card} w-full max-w-sm space-y-6 relative z-10`}
         style={{animation:"cardReveal 0.55s cubic-bezier(0.32,0.72,0,1) forwards"}}
@@ -382,7 +370,6 @@ function AuthScreen({ onAuth, onBack }) {
           </div>
         ) : (
           <>
-            {/* Google button shows for login AND signup */}
             {mode !== "reset" && (
               <>
                 <button onClick={signInWithGoogle} className={`${g.btn} w-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-3 border border-white/10`}>
@@ -599,7 +586,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
 
   const today = new Date(); today.setHours(0,0,0,0);
   const deadline = promo.deadline || promo.due_date;
-  const deadlineDate = deadline ? new Date(deadline) : null;
+  const deadlineDate = deadline ? new Date(deadline + "T00:00:00") : null;
   if (deadlineDate) deadlineDate.setHours(0,0,0,0);
   const isDueToday = deadlineDate && deadlineDate.getTime() === today.getTime();
 
@@ -636,7 +623,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
             {isDueToday && <span className="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full animate-pulse">due today</span>}
           </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline).toLocaleDateString()}</p>}
+            {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline + "T00:00:00").toLocaleDateString()}</p>}
             {promo.audio_link && (
               <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors inline-flex items-center gap-1.5">
                 <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
@@ -668,7 +655,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
 }
 
 // ─── Home Tab ────────────────────────────────────────────────
-function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriority, onDelete, onEdit, onMoveTop, pastClients, theme }) {
+function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriority, onDelete, onEdit, pastClients, theme }) {
   const g = themes[theme];
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState(goal);
@@ -678,8 +665,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [dragId, setDragId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [orderedIds, setOrderedIds] = useState([]);
-  
-  // Search state
   const [searchQuery, setSearchQuery] = useState("");
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
@@ -689,11 +674,10 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 
   useEffect(() => { setOrderedIds(basePromos.map(p => p.id)); }, [promos]);
 
-  // Filter promos based on search query
   const filteredPromos = useMemo(() => {
     if (!searchQuery.trim()) return basePromos;
     const query = searchQuery.toLowerCase();
-    return basePromos.filter(p => 
+    return basePromos.filter(p =>
       (p.song_name?.toLowerCase() || "").includes(query) ||
       (p.client_name?.toLowerCase() || "").includes(query)
     );
@@ -710,7 +694,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 
   const handleDragStart = (id) => setDragId(id);
   const handleDragEnter = (id) => {
-    if (id === dragId || searchQuery) return; // Disable drag when searching
+    if (id === dragId || searchQuery) return;
     setDragOverId(id);
     setOrderedIds(prev => {
       const arr = [...prev];
@@ -725,8 +709,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   return (
     <div className="space-y-5 pb-32 tab-enter">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
-      
-      {/* Goal Section */}
+
       <div className={`${g.card} space-y-3`}>
         <div className="flex items-center justify-between text-sm">
           <span className={g.subtext}>{pct}% this month</span>
@@ -751,7 +734,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
         <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
       </div>
 
-      {/* Search Bar - NOW UNDER THE GOAL */}
       <div className={`${g.card} py-3`}>
         <div className="relative">
           <input
@@ -761,19 +743,10 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
             onChange={e => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
-            >
-              ×
-            </button>
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">×</button>
           )}
         </div>
-        {searchQuery && (
-          <p className={`${g.muted} text-xs mt-2`}>
-            {filteredPromos.length} result{filteredPromos.length !== 1 ? 's' : ''}
-          </p>
-        )}
+        {searchQuery && <p className={`${g.muted} text-xs mt-2`}>{filteredPromos.length} result{filteredPromos.length !== 1 ? 's' : ''}</p>}
       </div>
 
       <div className="space-y-3">
@@ -783,20 +756,13 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
           </div>
         )}
         {activePromos.map((p, i) => (
-          <PromoCard 
-            key={p.id} 
-            promo={p} 
-            index={i} 
-            theme={theme}
-            dragging={dragId} 
-            dragOver={dragOverId}
-            onDragStart={handleDragStart} 
-            onDragEnter={handleDragEnter} 
-            onDragEnd={handleDragEnd}
+          <PromoCard
+            key={p.id} promo={p} index={i} theme={theme}
+            dragging={dragId} dragOver={dragOverId}
+            onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd}
             onComplete={(promo) => setCompletingPromo(promo)}
-            onDelete={onDelete} 
-            onTogglePriority={onTogglePriority}
-            onEdit={(promo) => setEditingPromo(promo)} 
+            onDelete={onDelete} onTogglePriority={onTogglePriority}
+            onEdit={(promo) => setEditingPromo(promo)}
           />
         ))}
       </div>
@@ -881,6 +847,7 @@ function HistoryTab({ promos, onDelete, theme }) {
     const a = document.createElement("a"); a.href = url; a.download = `glaze-history-${new Date().toISOString().slice(0,10)}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
+
   return (
     <div className="space-y-3 pb-32 tab-enter">
       {completed.length > 0 && (
@@ -992,7 +959,6 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
 
   return (
     <div className="space-y-4 pb-32 tab-enter">
-      {/* Avatar hero — circle, centered */}
       <div className={`${g.card} flex flex-col items-center gap-4 pt-6 pb-5`}>
         <label className="cursor-pointer relative group">
           <div className="w-24 h-24 rounded-full bg-white/10 overflow-hidden flex items-center justify-center text-4xl ring-2 ring-white/10 group-hover:ring-violet-400/50 transition-all duration-200">
@@ -1013,11 +979,9 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
         {msg && <p className="text-sm text-violet-400 animate-fadeIn">{msg}</p>}
       </div>
 
-      {/* Account settings collapsed */}
       <div className={`${g.card} space-y-0`}>
         <p className={`${g.muted} text-[11px] uppercase tracking-widest mb-3`}>Account</p>
         <div className={`${g.subtext} text-sm mb-4`}>{user.email}</div>
-
         <div className="space-y-4 divide-y divide-white/5">
           <Collapsible label={<span className={g.subtext}>Change Email</span>}>
             <input className={g.input} type="password" placeholder="Current password" value={currentPasswordForEmail} onChange={e => setCurrentPasswordForEmail(e.target.value)} />
@@ -1036,7 +1000,6 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
         </div>
       </div>
 
-      {/* Theme */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold flex items-center gap-2`}>
           <SvgIcon name="theme" theme={theme} className="w-4 h-4 opacity-80" alt="" />
@@ -1066,7 +1029,6 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
         </div>
       </div>
 
-      {/* Feedback */}
       <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>💬 Send Feedback</p>
         <textarea className={`${g.input} resize-none`} rows={3} placeholder="Tell us what you think, what's broken, or what you'd love to see…" value={feedbackText} onChange={e => setFeedbackText(e.target.value)} />
@@ -1311,12 +1273,13 @@ function AddQuickBtn({ onAdd, pastClients, theme, triggerOpen, onOpened }) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [showLanding, setShowLanding] = useState(true);
-const [landingExiting, setLandingExiting] = useState(false);
+  const [landingExiting, setLandingExiting] = useState(false);
 
-const enterAuth = () => {
-  setLandingExiting(true);
-  setTimeout(() => setShowLanding(false), 400);
-};
+  const enterAuth = () => {
+    setLandingExiting(true);
+    setTimeout(() => setShowLanding(false), 400);
+  };
+
   const [tab, setTab] = useState("home");
   const [promos, setPromos] = useState([]);
   const [goal, setGoal] = useState(1000);
@@ -1393,18 +1356,6 @@ const enterAuth = () => {
     if (data) setPromos(prev => prev.map(p => p.id === id ? data : p));
   };
 
-  const moveToTop = (id) => {
-    setPromos(prev => {
-      const active = prev.filter(p => !p.completed);
-      const rest = prev.filter(p => p.completed);
-      const idx = active.findIndex(p => p.id === id);
-      if (idx <= 0) return prev;
-      const item = active.splice(idx, 1)[0];
-      active.unshift(item);
-      return [...active, ...rest];
-    });
-  };
-
   const signOut = () => supabase.auth.signOut();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:"#080810"}}><div className="text-white/30 text-sm animate-pulse">loading glaze…</div></div>;
@@ -1427,7 +1378,7 @@ const enterAuth = () => {
         <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-500">.</span></h1>
         <p className={`${g.muted} text-sm truncate max-w-[60%]`}>{user.user_metadata?.display_name||user.email}</p>
       </div>
-      {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} onMoveTop={moveToTop} pastClients={pastClients} theme={theme} />}
+      {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
       {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
       {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
       {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
