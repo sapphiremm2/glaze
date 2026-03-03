@@ -114,3 +114,12 @@ body {
   from { opacity: 0; transform: translateY(16px); filter: blur(6px); }
   to   { opacity: 1; transform: translateY(0);    filter: blur(0px); }
 }
+
+body {
+  background: #080810;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+html {
+  height: -webkit-fill-available;
+}
