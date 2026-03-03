@@ -594,61 +594,64 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
   const isDragging = dragging === promo.id;
   const isOver = dragOver === promo.id;
 
+  const delay = Math.min(index * 0.06, 0.4);
+
   return (
     <>
-      <div
-        draggable
-        onDragStart={() => onDragStart(promo.id)}
-        onDragEnter={() => onDragEnter(promo.id)}
-        onDragEnd={onDragEnd}
-        onDragOver={e => e.preventDefault()}
-        className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing select-none`}
-        style={{
-          transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : "scale(1)",
-          opacity: isDragging ? 0.5 : 1,
-          transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
-          boxShadow: isDragging ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
-          animation: !isDragging && isOver ? "jiggle 0.3s ease infinite" : undefined,
-        }}
-      >
-        {promo.priority && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-fuchsia-500 rounded-l-2xl" />}
+      <div style={{ animation: `cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s both` }}>
+        <div
+          draggable
+          onDragStart={() => onDragStart(promo.id)}
+          onDragEnter={() => onDragEnter(promo.id)}
+          onDragEnd={onDragEnd}
+          onDragOver={e => e.preventDefault()}
+          className={`${g.base} p-4 flex items-center gap-3 relative overflow-hidden cursor-grab active:cursor-grabbing select-none`}
+          style={{
+            transform: isDragging ? "scale(1.03) rotate(1deg)" : isOver ? "scale(0.98)" : "scale(1)",
+            opacity: isDragging ? 0.5 : 1,
+            transition: "transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
+            boxShadow: isDragging ? "0 20px 40px rgba(139,92,246,0.3)" : "none",
+            animation: !isDragging && isOver ? "jiggle 0.3s ease infinite" : undefined,
+          }}
+        >
+          {promo.priority && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-violet-400 to-fuchsia-500 rounded-l-2xl" />}
 
-        <div className="flex-1 min-w-0 ml-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-semibold ${g.text} truncate ${isDueToday ? "animate-pulse text-rose-400" : ""}`}>
-              {promo.song_name || promo.client_name}
-            </span>
-            {promo.client_name && promo.song_name && (
-              <span className={`text-[11px] ${g.muted} bg-white/10 px-2 py-0.5 rounded-full`}>{promo.client_name}</span>
-            )}
-            {isDueToday && <span className="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full animate-pulse">due today</span>}
+          <div className="flex-1 min-w-0 ml-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`font-semibold ${g.text} truncate ${isDueToday ? "animate-pulse text-rose-400" : ""}`}>
+                {promo.song_name || promo.client_name}
+              </span>
+              {promo.client_name && promo.song_name && (
+                <span className={`text-[11px] ${g.muted} bg-white/10 px-2 py-0.5 rounded-full`}>{promo.client_name}</span>
+              )}
+              {isDueToday && <span className="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full animate-pulse">due today</span>}
+            </div>
+            <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+              {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline + "T00:00:00").toLocaleDateString()}</p>}
+              {promo.audio_link && (
+                <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors inline-flex items-center gap-1.5">
+                  <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
+                  Listen
+                </a>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            {deadline && <p className={`text-xs ${isDueToday ? "text-rose-400" : g.muted}`}>Due {new Date(deadline + "T00:00:00").toLocaleDateString()}</p>}
-            {promo.audio_link && (
-              <a href={promo.audio_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors inline-flex items-center gap-1.5">
-                <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
-                Listen
-              </a>
-            )}
+
+          <span className="text-emerald-500 font-bold shrink-0">{fmt(promo.amount)}</span>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <button onClick={() => onTogglePriority(promo.id, !promo.priority)} aria-label="Toggle priority" className={`transition-all ${promo.priority ? "opacity-100" : "opacity-25 hover:opacity-60"}`}>
+              <SvgIcon name="bolt" theme={theme} className="w-5 h-5" alt="" />
+            </button>
+            <button onClick={() => onEdit(promo)} aria-label="Edit promo" className={`text-xs ${g.muted} hover:text-violet-400 px-1.5 py-1.5 rounded-lg transition-all`}>
+              <SvgIcon name="edit" theme={theme} className="w-4 h-4 opacity-80" alt="" />
+            </button>
+            <button onClick={() => onComplete(promo)} className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
+            <button onClick={() => setConfirmDelete(true)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none px-1`}>×</button>
           </div>
-        </div>
-
-        <span className="text-emerald-500 font-bold shrink-0">{fmt(promo.amount)}</span>
-
-        <div className="flex items-center gap-1 shrink-0">
-          <button onClick={() => onTogglePriority(promo.id, !promo.priority)} aria-label="Toggle priority" className={`transition-all ${promo.priority ? "opacity-100" : "opacity-25 hover:opacity-60"}`}>
-            <SvgIcon name="bolt" theme={theme} className="w-5 h-5" alt="" />
-          </button>
-          <button onClick={() => onEdit(promo)} aria-label="Edit promo" className={`text-xs ${g.muted} hover:text-violet-400 px-1.5 py-1.5 rounded-lg transition-all`}>
-            <SvgIcon name="edit" theme={theme} className="w-4 h-4 opacity-80" alt="" />
-          </button>
-          <button onClick={() => onComplete(promo)} className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
-          <button onClick={() => setConfirmDelete(true)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none px-1`}>×</button>
         </div>
       </div>
 
-      </div>
       {confirmDelete && (
         <DeleteConfirmModal theme={theme} onClose={() => setConfirmDelete(false)} onConfirm={() => { onDelete(promo.id); setConfirmDelete(false); }} />
       )}
