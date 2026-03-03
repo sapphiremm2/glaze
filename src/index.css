@@ -80,3 +80,27 @@ body {
 
 /* Smooth tab content entrance */
 .tab-enter { animation: slideUp 0.2s ease forwards; }
+
+/*auth screen card recveal animation*/
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes bgShrink {
+  from { transform: scale(1); filter: blur(0px); }
+  to { transform: scale(0.92); filter: blur(4px); }
+}
+
+@keyframes letterReveal {
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}

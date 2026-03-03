@@ -153,7 +153,7 @@ function CreatorCarousel({ creators }) {
 }
 
 // ─── Landing Page ────────────────────────────────────────────
-function LandingPage({ onEnter, creators }) {
+function LandingPage({ onEnter, creators, exiting }) {
   const [openFaq, setOpenFaq] = useState(null);
 
   const faqs = [
@@ -165,7 +165,14 @@ function LandingPage({ onEnter, creators }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{background:"#080810",backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.10) 0%, transparent 55%)"}}>
+    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{
+      background:"#080810",
+      backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.10) 0%, transparent 55%)",
+      transition:"opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease",
+      opacity: exiting ? 0 : 1,
+      transform: exiting ? "scale(0.96)" : "scale(1)",
+      filter: exiting ? "blur(6px)" : "blur(0px)",
+    }}>
       <nav className="flex items-center justify-between px-8 pt-8 relative z-10">
         <span className="text-xl font-black tracking-tighter text-white">glaze<span className="text-violet-400">.</span></span>
         <button onClick={onEnter} className="text-sm text-white/50 hover:text-white transition-colors">Sign in →</button>
@@ -256,9 +263,7 @@ function AuthScreen({ onAuth, onBack }) {
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
+      options: { redirectTo: window.location.origin }
     });
     if (error) setError(error.message);
   };
@@ -278,14 +283,38 @@ function AuthScreen({ onAuth, onBack }) {
     if (data.user) onAuth(data.user);
   };
 
+  const tagline = "your promo empire, tracked.";
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{background:"#080810"}}>
-      <div className={`${g.card} w-full max-w-sm space-y-6`}>
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{background:"#080810"}}>
+      {/* Background that scales + blurs as card comes up */}
+      <div style={{position:"absolute",inset:0,zIndex:0,backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.10) 0%, transparent 55%)"}} />
+
+      {/* Card */}
+      <div
+        className={`${g.card} w-full max-w-sm space-y-6 relative z-10`}
+        style={{animation:"cardReveal 0.55s cubic-bezier(0.32,0.72,0,1) forwards"}}
+      >
         <button onClick={onBack} className="text-white/30 hover:text-white transition-colors text-sm">← Back</button>
+
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tighter text-white">glaze<span className="text-violet-400">.</span></div>
-          <p className="text-white/40 text-sm">{mode === "reset" ? "reset your password" : "your promo empire, tracked"}</p>
+          <p className="text-white/40 text-sm">
+            {mode === "reset" ? "reset your password" : (
+              tagline.split("").map((char, i) => (
+                <span key={i} style={{
+                  display:"inline-block",
+                  opacity:0,
+                  animation:"letterReveal 0.4s ease forwards",
+                  animationDelay:`${0.35 + i * 0.028}s`,
+                }}>
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))
+            )}
+          </p>
         </div>
+
         {resetSent ? (
           <div className="text-center space-y-4">
             <p className="text-emerald-400 text-sm">Check your email for a reset link 🤍</p>
@@ -1221,6 +1250,12 @@ function AddQuickBtn({ onAdd, pastClients, theme, triggerOpen, onOpened }) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [showLanding, setShowLanding] = useState(true);
+const [landingExiting, setLandingExiting] = useState(false);
+
+const enterAuth = () => {
+  setLandingExiting(true);
+  setTimeout(() => setShowLanding(false), 400);
+};
   const [tab, setTab] = useState("home");
   const [promos, setPromos] = useState([]);
   const [goal, setGoal] = useState(1000);
@@ -1312,7 +1347,16 @@ export default function App() {
   const signOut = () => supabase.auth.signOut();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:"#080810"}}><div className="text-white/30 text-sm animate-pulse">loading glaze…</div></div>;
-  if (!user && showLanding) return <LandingPage onEnter={() => setShowLanding(false)} creators={creators} />;
+  if (!user && (showLanding || landingExiting)) return (
+    <div style={{position:"relative"}}>
+      <LandingPage onEnter={enterAuth} creators={creators} exiting={landingExiting} />
+      {landingExiting && (
+        <div style={{position:"fixed", inset:0, zIndex:50}}>
+          <AuthScreen onAuth={setUser} onBack={() => { setLandingExiting(false); setShowLanding(true); }} />
+        </div>
+      )}
+    </div>
+  );
   if (!user) return <AuthScreen onAuth={setUser} onBack={() => setShowLanding(true)} />;
   if (user.email === ADMIN_EMAIL) return <AdminPanel onSignOut={signOut} />;
 
