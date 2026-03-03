@@ -990,9 +990,9 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   }, []);
 
   const loadLinkedProviders = async () => {
-    const { data: { identities } } = await supabase.auth.getUser();
-    if (identities) {
-      setLinkedProviders(identities.map(i => i.provider));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.identities) {
+      setLinkedProviders(user.identities.map(i => i.provider));
     }
   };
 
