@@ -1085,7 +1085,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   };
 
   return (
-    <div className="space-y-5 pb-32 tab-enter">
+    <div className="space-y-5 pb-4 lg:pb-8 tab-enter">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
 
       <div className={`${g.card} space-y-3`}>
@@ -1171,7 +1171,7 @@ function StatsTab({ promos, goal, theme }) {
   const sortedMonths = [...months].sort((a,b) => a[0].localeCompare(b[0]));
   const fmtMonth = k => { const [y,m] = k.split("-"); return new Date(y,m-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"}); };
   return (
-    <div className="space-y-4 pb-32 tab-enter">
+    <div className="space-y-4 pb-4 lg:pb-8 tab-enter">
       <div className={`${g.card} text-center`}>
         <p className={`${g.muted} text-xs uppercase tracking-widest mb-1`}>Lifetime Earnings</p>
         <p className={`text-5xl font-black ${g.text}`}>{fmt(totalEarned)}</p>
@@ -1239,7 +1239,7 @@ function HistoryTab({ promos, onDelete, theme }) {
   };
 
   return (
-    <div className="space-y-3 pb-32 tab-enter">
+    <div className="space-y-3 pb-4 lg:pb-8 tab-enter">
       {/* Search Bar */}
       <div className={`${g.card} py-3`}>
         <div className="relative">
@@ -1432,7 +1432,7 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   const hasEmail = linkedProviders.includes('email') || user.email;
 
   return (
-    <div className="space-y-4 pb-32 tab-enter">
+    <div className="space-y-4 pb-4 lg:pb-8 tab-enter">
       <div className={`${g.card} flex flex-col items-center gap-4 pt-6 pb-5`}>
         <label className="cursor-pointer relative group">
           <div className="w-24 h-24 rounded-full bg-white/10 overflow-hidden flex items-center justify-center text-4xl ring-2 ring-white/10 group-hover:ring-violet-400/50 transition-all duration-200">
@@ -1911,26 +1911,143 @@ export default function App() {
   if (!user) return <AuthScreen onAuth={setUser} onBack={() => setShowLanding(true)} />;
   if (user.email === ADMIN_EMAIL) return <AdminPanel onSignOut={signOut} />;
 
+  const activePromos = promos.filter(p => !p.completed);
+  const completedPromos = promos.filter(p => p.completed);
+  const monthEarned = completedPromos.filter(p => monthKey(p.completed_at) === thisMonth()).reduce((s,p) => s+p.amount, 0);
+  const pct = Math.min(100, Math.round((monthEarned/(goal||1))*100));
+  const displayName = user.user_metadata?.display_name || user.email?.split("@")[0] || "creator";
+
+  // ── DESKTOP SIDEBAR NAV BUTTON ──
+  const SideNavBtn = ({ id, icon, label }) => (
+    <button onClick={() => setTab(id)}
+      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left"
+      style={{
+        background: tab === id ? "rgba(139,92,246,0.2)" : "transparent",
+        color: tab === id ? "#a78bfa" : "rgba(255,255,255,0.4)",
+        border: tab === id ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent",
+      }}
+      onMouseEnter={e => { if (tab !== id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+      onMouseLeave={e => { if (tab !== id) e.currentTarget.style.background = "transparent"; }}
+    >
+      <SvgIcon name={icon} theme="dark" className="w-5 h-5 opacity-80 shrink-0" alt="" />
+      <span className="text-sm font-medium">{label}</span>
+    </button>
+  );
+
   return (
-    <div className="min-h-screen max-w-lg mx-auto px-4 pt-6 transition-colors duration-300" style={g.bgStyle}>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-500">.</span></h1>
-        <p className={`${g.muted} text-sm truncate max-w-[60%]`}>{user.user_metadata?.display_name||user.email}</p>
-      </div>
-      <div key={tab} className="tab-enter">
-        {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
-        {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
-        {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
-        {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
-      </div>
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 px-4">
-        <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
-          <NavBtn id="home" icon="queue" label="Queue" active={tab} onClick={setTab} theme={theme} />
-          <NavBtn id="history" icon="history" label="History" active={tab} onClick={setTab} theme={theme} />
-          <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={ctrlN} onOpened={() => setCtrlN(false)} />
-          <NavBtn id="stats" icon="stats" label="Stats" active={tab} onClick={setTab} theme={theme} />
-          <NavBtn id="profile" icon="user" label="Profile" active={tab} onClick={setTab} theme={theme} />
+    <div className="min-h-screen transition-colors duration-300" style={g.bgStyle}>
+
+      {/* ── MOBILE LAYOUT (hidden on lg+) ── */}
+      <div className="lg:hidden max-w-lg mx-auto px-4 pt-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-500">.</span></h1>
+          <p className={`${g.muted} text-sm truncate max-w-[60%]`}>{displayName}</p>
         </div>
+        <div key={tab} className="tab-enter pb-32">
+          {tab === "home"    && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
+          {tab === "stats"   && <StatsTab promos={promos} goal={goal} theme={theme} />}
+          {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
+          {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
+        </div>
+        {/* Mobile bottom nav */}
+        <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 px-4 z-40">
+          <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
+            <NavBtn id="home"    icon="queue"   label="Queue"   active={tab} onClick={setTab} theme={theme} />
+            <NavBtn id="history" icon="history" label="History" active={tab} onClick={setTab} theme={theme} />
+            <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={ctrlN} onOpened={() => setCtrlN(false)} />
+            <NavBtn id="stats"   icon="stats"   label="Stats"   active={tab} onClick={setTab} theme={theme} />
+            <NavBtn id="profile" icon="user"    label="Profile" active={tab} onClick={setTab} theme={theme} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── DESKTOP LAYOUT (hidden on mobile) ── */}
+      <div className="hidden lg:flex min-h-screen">
+
+        {/* Sidebar */}
+        <aside className="w-64 shrink-0 flex flex-col px-4 py-6 sticky top-0 h-screen"
+          style={{ borderRight: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)", backdropFilter: "blur(20px)" }}>
+          {/* Logo */}
+          <div className="px-4 mb-8">
+            <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-400">.</span></h1>
+            <p className="text-white/30 text-xs mt-0.5 truncate">{displayName}</p>
+          </div>
+
+          {/* Nav */}
+          <nav className="space-y-1 flex-1">
+            <SideNavBtn id="home"    icon="queue"   label="Queue"   />
+            <SideNavBtn id="stats"   icon="stats"   label="Stats"   />
+            <SideNavBtn id="history" icon="history" label="History" />
+            <SideNavBtn id="profile" icon="user"    label="Profile" />
+          </nav>
+
+          {/* Add promo button */}
+          <div className="mt-4">
+            <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={ctrlN} onOpened={() => setCtrlN(false)} />
+          </div>
+
+          {/* Quick stats */}
+          <div className="mt-6 space-y-3">
+            <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)" }}>
+              <p className="text-white/40 text-xs mb-1">this month</p>
+              <p className="text-white font-bold text-lg">{fmt(monthEarned)}</p>
+              <div className="h-1.5 rounded-full mt-2" style={{ background: "rgba(255,255,255,0.08)" }}>
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg,#7c3aed,#d946ef)" }} />
+              </div>
+              <p className="text-white/25 text-xs mt-1">{pct}% of goal</p>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1 px-3 py-2.5 rounded-xl text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-white font-bold text-base">{activePromos.length}</p>
+                <p className="text-white/30 text-[10px]">active</p>
+              </div>
+              <div className="flex-1 px-3 py-2.5 rounded-xl text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-emerald-400 font-bold text-base">{completedPromos.length}</p>
+                <p className="text-white/30 text-[10px]">done</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sign out */}
+          <button onClick={signOut} className="mt-6 w-full py-2.5 rounded-xl text-xs transition-all"
+            style={{ color: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.06)" }}
+            onMouseEnter={e => e.currentTarget.style.color = "#f87171"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.25)"}>
+            sign out
+          </button>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto px-8 py-8">
+            {/* Desktop header */}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className={`text-2xl font-black ${g.text}`}>
+                  {tab === "home"    ? "Queue"   :
+                   tab === "stats"   ? "Stats"   :
+                   tab === "history" ? "History" : "Profile"}
+                </h2>
+                <p className="text-white/30 text-sm mt-0.5">
+                  {tab === "home"    ? `${activePromos.length} active promo${activePromos.length !== 1 ? "s" : ""}` :
+                   tab === "stats"   ? "your earnings breakdown" :
+                   tab === "history" ? `${completedPromos.length} completed` : "account & preferences"}
+                </p>
+              </div>
+              {tab === "home" && (
+                <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={false} onOpened={() => {}} />
+              )}
+            </div>
+
+            {/* Tab content — wider on desktop */}
+            <div key={tab} className="tab-enter">
+              {tab === "home"    && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
+              {tab === "stats"   && <StatsTab promos={promos} goal={goal} theme={theme} />}
+              {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
+              {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
