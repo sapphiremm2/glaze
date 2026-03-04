@@ -175,6 +175,67 @@ function CreatorCarousel({ creators }) {
   );
 }
 
+// ─── Magnetic Card ───────────────────────────────────────────
+function MagneticCard({ children }) {
+  const ref = useRef(null);
+  const [transform, setTransform] = useState({ x: 0, y: 0, rot: 0 });
+  const animRef = useRef(null);
+  const current = useRef({ x: 0, y: 0, rot: 0 });
+  const target = useRef({ x: 0, y: 0, rot: 0 });
+
+  const handleMouseMove = (e) => {
+    const rect = ref.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxDist = 120;
+    const strength = Math.max(0, 1 - dist / maxDist);
+    target.current = {
+      x: dx * strength * 0.35,
+      y: dy * strength * 0.35,
+      rot: dx * strength * 0.04,
+    };
+  };
+
+  const handleMouseLeave = () => {
+    target.current = { x: 0, y: 0, rot: 0 };
+  };
+
+  useEffect(() => {
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const tick = () => {
+      current.current.x = lerp(current.current.x, target.current.x, 0.1);
+      current.current.y = lerp(current.current.y, target.current.y, 0.1);
+      current.current.rot = lerp(current.current.rot, target.current.rot, 0.1);
+      setTransform({ ...current.current });
+      animRef.current = requestAnimationFrame(tick);
+    };
+    animRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-2 cursor-default"
+      style={{
+        transform: `translate(${transform.x}px, ${transform.y}px) rotate(${transform.rot}deg)`,
+        transition: "box-shadow 0.3s ease",
+        boxShadow: Math.abs(transform.x) + Math.abs(transform.y) > 0.5
+          ? "0 20px 40px rgba(139,92,246,0.15), 0 0 0 1px rgba(139,92,246,0.15)"
+          : "none",
+        willChange: "transform",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 // ─── Landing Page ────────────────────────────────────────────
 function LandingPage({ onEnter, creators, exiting }) {
   const [openFaq, setOpenFaq] = useState(null);
@@ -257,11 +318,11 @@ function LandingPage({ onEnter, creators, exiting }) {
             {icon:"money",title:"Earnings Tracker",body:"See your lifetime earnings, monthly goal progress, and which clients are paying the most."},
             {icon:"proof",title:"Payment Proof",body:"Attach your TikTok links and payment screenshots to every completed deal."},
           ].map(f => (
-            <div key={f.title} className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-2">
+            <MagneticCard key={f.title}>
               <SvgIcon name={f.icon} theme="dark" className="w-6 h-6 opacity-80" alt="" />
               <p className="text-white font-semibold text-sm">{f.title}</p>
               <p className="text-white/35 text-xs leading-relaxed">{f.body}</p>
-            </div>
+            </MagneticCard>
           ))}
         </div>
 
@@ -833,7 +894,7 @@ function StatsTab({ promos, goal, theme }) {
   const fmtMonth = k => { const [y,m] = k.split("-"); return new Date(y,m-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"}); };
   return (
     <div className="space-y-4 pb-32 tab-enter">
-      <div style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0s both" }} className={`${g.card} text-center`}>
+      <div className={`${g.card} text-center`}>
         <p className={`${g.muted} text-xs uppercase tracking-widest mb-1`}>Lifetime Earnings</p>
         <p className={`text-5xl font-black ${g.text}`}>{fmt(totalEarned)}</p>
         <p className={`${g.muted} text-sm mt-1`}>across {completed.length} promos</p>
@@ -850,7 +911,7 @@ function StatsTab({ promos, goal, theme }) {
         {bestMonth && <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Best Month</p><p className={`${g.text} font-bold`}>{fmtMonth(bestMonth[0])}</p><p className="text-fuchsia-500 text-sm">{fmt(bestMonth[1])}</p></div>}
       </div>
       {sortedMonths.length > 0 && (
-        <div style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both" }} className={`${g.card} space-y-3`}>
+        <div className={`${g.card} space-y-3`}>
           <p className={`${g.subtext} text-sm font-semibold`}>Monthly Breakdown</p>
           <div className="space-y-2">
             {sortedMonths.map(([k,v]) => (
@@ -867,37 +928,10 @@ function StatsTab({ promos, goal, theme }) {
   );
 }
 
-// ─── Image Proof Modal ───────────────────────────────────────
-function ImageProofModal({ url, onClose }) {
-  const [loaded, setLoaded] = useState(false);
-  return (
-    <Overlay onClose={onClose}>
-      <div className="relative w-full max-w-lg mx-auto animate-popIn" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute -top-10 right-0 text-white/50 hover:text-white text-sm transition-colors flex items-center gap-1.5">
-          close ×
-        </button>
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-          {!loaded && (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-white/30 text-sm animate-pulse">loading proof…</div>
-            </div>
-          )}
-          <img src={url} alt="Payment proof" onLoad={() => setLoaded(true)}
-            className="w-full h-auto max-h-[80vh] object-contain"
-            style={{ display: loaded ? "block" : "none" }} />
-        </div>
-        <p className="text-center text-white/20 text-xs mt-3">payment proof</p>
-      </div>
-    </Overlay>
-  );
-}
-
 // ─── History Tab ─────────────────────────────────────────────
 function HistoryTab({ promos, onDelete, theme }) {
   const g = themes[theme];
   const [searchQuery, setSearchQuery] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [proofUrl, setProofUrl] = useState(null);
   
   const completed = promos.filter(p => p.completed).sort((a,b) => new Date(b.completed_at)-new Date(a.completed_at));
 
@@ -911,7 +945,20 @@ function HistoryTab({ promos, onDelete, theme }) {
     );
   }, [completed, searchQuery]);
 
-
+  const exportCSV = () => {
+    const headers = ["Song","Client","Amount","Deadline","Completed","Video Link","Audio Link"];
+    const rows = completed.map(p => [
+      p.song_name||"", p.client_name||"",
+      p.amount, p.due_date||p.deadline||"",
+      p.completed_at ? new Date(p.completed_at).toLocaleDateString() : "",
+      p.work_link||"", p.audio_link||""
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `glaze-history-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-3 pb-32 tab-enter">
@@ -940,7 +987,12 @@ function HistoryTab({ promos, onDelete, theme }) {
         )}
       </div>
 
-
+      {completed.length > 0 && !searchQuery && (
+        <button onClick={exportCSV} className="w-full py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 text-sm transition-all flex items-center justify-center gap-2">
+          <SvgIcon name="download" theme={theme} className="w-4 h-4 opacity-80" alt="" />
+          Export CSV
+        </button>
+      )}
       
       {filteredCompleted.length === 0 && (
         <div className={`text-center ${g.muted} py-16 text-sm`}>
@@ -948,41 +1000,31 @@ function HistoryTab({ promos, onDelete, theme }) {
         </div>
       )}
       
-      {filteredCompleted.map((p, i) => (
-        <div key={p.id} style={{ animation: `cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) ${Math.min(i * 0.06, 0.4)}s both` }}>
-          <div className={`${g.card} space-y-3`}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className={`font-semibold ${g.text} truncate`}>{p.song_name || p.client_name}</p>
-                {p.client_name && <p className={`text-xs ${g.muted}`}>{p.client_name}</p>}
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-emerald-500 font-bold">{fmt(p.amount)}</span>
-                <button onClick={() => setConfirmDeleteId(p.id)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none`}>×</button>
-              </div>
+      {filteredCompleted.map(p => (
+        <div key={p.id} className={`${g.card} space-y-3`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className={`font-semibold ${g.text} truncate`}>{p.song_name || p.client_name}</p>
+              {p.client_name && <p className={`text-xs ${g.muted}`}>{p.client_name}</p>}
             </div>
-            {p.completed_at && <p className={`text-xs ${g.muted}`}>Completed {new Date(p.completed_at).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</p>}
-            <div className="flex gap-3 flex-wrap">
-              {p.audio_link && (
-                <a href={p.audio_link} target="_blank" rel="noreferrer" className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 inline-flex items-center gap-1.5">
-                  <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
-                  Song →
-                </a>
-              )}
-              {p.work_link && <a href={p.work_link} target="_blank" rel="noreferrer" className="text-xs text-violet-500 hover:text-violet-400 underline underline-offset-2">View Video →</a>}
-              {p.screenshot_url && <button onClick={() => setProofUrl(p.screenshot_url)} className="text-xs text-fuchsia-500 hover:text-fuchsia-400 underline underline-offset-2 transition-colors">Payment Proof →</button>}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-emerald-500 font-bold">{fmt(p.amount)}</span>
+              <button onClick={() => onDelete(p.id)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none`}>×</button>
             </div>
+          </div>
+          {p.completed_at && <p className={`text-xs ${g.muted}`}>Completed {new Date(p.completed_at).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</p>}
+          <div className="flex gap-3 flex-wrap">
+            {p.audio_link && (
+              <a href={p.audio_link} target="_blank" rel="noreferrer" className="text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 inline-flex items-center gap-1.5">
+                <SvgIcon name="music" theme={theme} className="w-4 h-4 opacity-90" alt="" />
+                Song →
+              </a>
+            )}
+            {p.work_link && <a href={p.work_link} target="_blank" rel="noreferrer" className="text-xs text-violet-500 hover:text-violet-400 underline underline-offset-2">View Video →</a>}
+            {p.screenshot_url && <a href={p.screenshot_url} target="_blank" rel="noreferrer" className="text-xs text-fuchsia-500 hover:text-fuchsia-400 underline underline-offset-2">Payment Proof →</a>}
           </div>
         </div>
       ))}
-      {confirmDeleteId && (
-        <DeleteConfirmModal
-          theme={theme}
-          onClose={() => setConfirmDeleteId(null)}
-          onConfirm={() => { onDelete(confirmDeleteId); setConfirmDeleteId(null); }}
-        />
-      )}
-      {proofUrl && <ImageProofModal url={proofUrl} onClose={() => setProofUrl(null)} />}
     </div>
   );
 }
@@ -1003,7 +1045,7 @@ function Collapsible({ label, children, defaultOpen = false }) {
   );
 }
 
-function ProfileTab({ user, onSignOut, theme, onThemeChange, promos }) {
+function ProfileTab({ user, onSignOut, theme, onThemeChange }) {
   const g = themes[theme];
   const [displayName, setDisplayName] = useState(user.user_metadata?.display_name||"");
   const [avatar, setAvatar] = useState(user.user_metadata?.avatar_url||null);
@@ -1111,26 +1153,9 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange, promos }) {
   const hasDiscord = linkedProviders.includes('discord');
   const hasEmail = linkedProviders.includes('email') || user.email;
 
-  const exportCSV = () => {
-    const completed = promos.filter(p => p.completed);
-    if (!completed.length) return;
-    const headers = ["Song","Client","Amount","Deadline","Completed","Video Link","Audio Link"];
-    const rows = completed.map(p => [
-      p.song_name||"", p.client_name||"",
-      p.amount, p.due_date||p.deadline||"",
-      p.completed_at ? new Date(p.completed_at).toLocaleDateString() : "",
-      p.work_link||"", p.audio_link||""
-    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(","));
-    const csv = [headers.join(","), ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `glaze-history-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="space-y-4 pb-32 tab-enter">
-      <div style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0s both" }} className={`${g.card} flex flex-col items-center gap-4 pt-6 pb-5`}>
+      <div className={`${g.card} flex flex-col items-center gap-4 pt-6 pb-5`}>
         <label className="cursor-pointer relative group">
           <div className="w-24 h-24 rounded-full bg-white/10 overflow-hidden flex items-center justify-center text-4xl ring-2 ring-white/10 group-hover:ring-violet-400/50 transition-all duration-200">
             {avatar ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" /> : <SvgIcon name="user" theme={theme} className="w-10 h-10 opacity-70" alt="" />}
@@ -1150,7 +1175,7 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange, promos }) {
         {msg && <p className="text-sm text-violet-400 animate-fadeIn">{msg}</p>}
       </div>
 
-      <div style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both" }} className={`${g.card} space-y-0`}>
+      <div className={`${g.card} space-y-0`}>
         <p className={`${g.muted} text-[11px] uppercase tracking-widest mb-3`}>Account</p>
         <div className={`${g.subtext} text-sm mb-4`}>{user.email}</div>
         <div className="space-y-4 divide-y divide-white/5">
@@ -1233,7 +1258,7 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange, promos }) {
       </div>
 
       {/* Theme */}
-      <div style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both" }} className={`${g.card} space-y-3`}>
+      <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold flex items-center gap-2`}>
           <SvgIcon name="theme" theme={theme} className="w-4 h-4 opacity-80" alt="" />
           Theme
@@ -1263,7 +1288,7 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange, promos }) {
       </div>
 
       {/* Feedback */}
-      <div style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both" }} className={`${g.card} space-y-3`}>
+      <div className={`${g.card} space-y-3`}>
         <p className={`${g.subtext} text-sm font-semibold`}>💬 Send Feedback</p>
         <textarea className={`${g.input} resize-none`} rows={3} placeholder="Tell us what you think, what's broken, or what you'd love to see…" value={feedbackText} onChange={e => setFeedbackText(e.target.value)} />
         {feedbackSent
@@ -1271,12 +1296,6 @@ function ProfileTab({ user, onSignOut, theme, onThemeChange, promos }) {
           : <button onClick={submitFeedback} disabled={!feedbackText.trim()} className={`${g.btn} w-full bg-violet-500/40 hover:bg-violet-500/70 text-white text-sm`}>Send Feedback</button>}
       </div>
 
-      {promos.filter(p => p.completed).length > 0 && (
-        <button onClick={exportCSV} style={{ animation: "cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both" }} className="w-full py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 text-sm transition-all flex items-center justify-center gap-2">
-          <SvgIcon name="download" theme={theme} className="w-4 h-4 opacity-80" alt="" />
-          Export History as CSV
-        </button>
-      )}
       <button onClick={onSignOut} className={`${g.btn} w-full bg-rose-500/20 hover:bg-rose-500/40 text-rose-500 text-sm`}>Sign Out</button>
     </div>
   );
@@ -1624,7 +1643,7 @@ export default function App() {
         {tab === "home" && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
         {tab === "stats" && <StatsTab promos={promos} goal={goal} theme={theme} />}
         {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
-        {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} promos={promos} />}
+        {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
       </div>
       <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 px-4">
         <div className={`${g.base} px-2 py-2 flex items-center gap-1 shadow-2xl`}>
