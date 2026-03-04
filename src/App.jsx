@@ -175,63 +175,20 @@ function CreatorCarousel({ creators }) {
   );
 }
 
-// ─── Magnetic Card ───────────────────────────────────────────
-function MagneticCard({ children }) {
-  const ref = useRef(null);
-  const [transform, setTransform] = useState({ x: 0, y: 0, rot: 0 });
-  const animRef = useRef(null);
-  const current = useRef({ x: 0, y: 0, rot: 0 });
-  const target = useRef({ x: 0, y: 0, rot: 0 });
-
-  const handleMouseMove = (e) => {
-    const rect = ref.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const maxDist = 120;
-    const strength = Math.max(0, 1 - dist / maxDist);
-    target.current = {
-      x: dx * strength * 0.35,
-      y: dy * strength * 0.35,
-      rot: dx * strength * 0.04,
-    };
-  };
-
-  const handleMouseLeave = () => {
-    target.current = { x: 0, y: 0, rot: 0 };
-  };
-
-  useEffect(() => {
-    const lerp = (a, b, t) => a + (b - a) * t;
-    const tick = () => {
-      current.current.x = lerp(current.current.x, target.current.x, 0.1);
-      current.current.y = lerp(current.current.y, target.current.y, 0.1);
-      current.current.rot = lerp(current.current.rot, target.current.rot, 0.1);
-      setTransform({ ...current.current });
-      animRef.current = requestAnimationFrame(tick);
-    };
-    animRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animRef.current);
-  }, []);
-
+// ─── Floating Orb ────────────────────────────────────────────
+function FloatingOrb({ emoji, style }) {
   return (
     <div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-2 cursor-default"
+      className="pointer-events-none select-none"
       style={{
-        transform: `translate(${transform.x}px, ${transform.y}px) rotate(${transform.rot}deg)`,
-        transition: "box-shadow 0.3s ease",
-        boxShadow: Math.abs(transform.x) + Math.abs(transform.y) > 0.5
-          ? "0 20px 40px rgba(139,92,246,0.15), 0 0 0 1px rgba(139,92,246,0.15)"
-          : "none",
-        willChange: "transform",
+        position: "absolute",
+        fontSize: "2.2rem",
+        filter: "drop-shadow(0 0 18px rgba(139,92,246,0.45))",
+        animation: `float-${style.anim || "a"} ${style.dur || 5}s ease-in-out infinite`,
+        ...style,
       }}
     >
-      {children}
+      {emoji}
     </div>
   );
 }
@@ -258,65 +215,104 @@ function LandingPage({ onEnter, creators, exiting }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden" style={{
       background:"#080810",
-      backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.15) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.10) 0%, transparent 55%)",
+      backgroundImage:"radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(217,70,239,0.12) 0%, transparent 55%), radial-gradient(ellipse 40% 40% at 50% 100%, rgba(139,92,246,0.08) 0%, transparent 60%)",
       transition:"opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease",
       opacity: exiting ? 0 : 1,
       transform: exiting ? "scale(0.96)" : "scale(1)",
       filter: exiting ? "blur(6px)" : "blur(0px)",
     }}>
 
-      {/* Nav */}
-      <nav style={reveal(0)} className="flex items-center justify-between px-8 pt-8 relative z-10">
-        <span className="text-xl font-black tracking-tighter text-white">glaze<span className="text-violet-400">.</span></span>
-        <button onClick={onEnter} className="text-sm text-white/50 hover:text-white transition-colors">Sign in →</button>
-      </nav>
+      {/* Keyframes */}
+      <style>{`
+        @keyframes float-a { 0%,100%{transform:translateY(0px) rotate(-4deg)} 50%{transform:translateY(-18px) rotate(4deg)} }
+        @keyframes float-b { 0%,100%{transform:translateY(0px) rotate(6deg)} 50%{transform:translateY(-14px) rotate(-6deg)} }
+        @keyframes float-c { 0%,100%{transform:translateY(-8px) rotate(2deg)} 50%{transform:translateY(8px) rotate(-2deg)} }
+        @keyframes float-d { 0%,100%{transform:translateY(0px) rotate(-8deg)} 50%{transform:translateY(-20px) rotate(8deg)} }
+        @keyframes shimmer { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        @keyframes orbitFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
+      `}</style>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center relative z-10 py-24">
+      {/* Centered pill nav */}
+      <div style={reveal(0)} className="flex justify-center pt-7 relative z-10 px-4">
+        <nav className="flex items-center gap-1 px-3 py-2 rounded-2xl backdrop-blur-xl bg-white/[0.05] border border-white/[0.08]">
+          <span className="text-base font-black tracking-tighter text-white px-3">glaze<span className="text-violet-400">.</span></span>
+          <div className="w-px h-5 bg-white/10 mx-1" />
+          <button onClick={onEnter} className="text-sm text-white/50 hover:text-white/90 transition-colors px-3 py-1.5 rounded-xl hover:bg-white/5">Pricing</button>
+          <button onClick={onEnter} className="text-sm text-white/50 hover:text-white/90 transition-colors px-3 py-1.5 rounded-xl hover:bg-white/5">FAQ</button>
+          <button onClick={onEnter} className="text-sm text-white/50 hover:text-white/90 transition-colors px-3 py-1.5 rounded-xl hover:bg-white/5">Login</button>
+          <button onClick={onEnter} className="ml-2 px-5 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">
+            Get Started
+          </button>
+        </nav>
+      </div>
+
+      {/* HERO */}
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-20 pb-32 z-10">
+
+        {/* Floating emoji objects */}
+        <FloatingOrb emoji="🎵" style={{ top:"8%", left:"6%", anim:"a", dur:5.2 }} />
+        <FloatingOrb emoji="💸" style={{ top:"18%", right:"7%", anim:"b", dur:6.1 }} />
+        <FloatingOrb emoji="🎧" style={{ top:"55%", left:"4%", anim:"c", dur:4.8 }} />
+        <FloatingOrb emoji="📱" style={{ top:"60%", right:"5%", anim:"d", dur:5.6 }} />
+        <FloatingOrb emoji="✨" style={{ top:"30%", left:"12%", anim:"b", dur:7, fontSize:"1.2rem" }} />
+        <FloatingOrb emoji="🔥" style={{ top:"35%", right:"12%", anim:"a", dur:6.4, fontSize:"1.4rem" }} />
 
         {/* Badge */}
-        <div style={reveal(0.1)} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300 text-xs font-medium mb-10 tracking-wide">
+        <div style={reveal(0.1)} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-400/25 bg-violet-500/10 text-violet-300 text-xs font-medium mb-8 tracking-wide">
           <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-          built for video editors
+          BETA V0.1 · built for video editors
         </div>
 
         {/* Headline */}
-        <h1 style={{fontFamily:"'Coolvetica', sans-serif", ...reveal(0.2)}} className="text-6xl sm:text-8xl text-white leading-[0.95] mb-6 max-w-2xl">
-          your promo<br />
-          <span style={{fontFamily:"'Coolvetica', sans-serif"}} className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">empire,</span><br />tracked.
+        <h1 style={{fontFamily:"'Coolvetica', sans-serif", ...reveal(0.2)}} className="text-6xl sm:text-8xl text-white leading-[0.92] mb-6 max-w-3xl">
+          The Workspace for<br />
+          <span style={{
+            fontFamily:"'Coolvetica', sans-serif",
+            background:"linear-gradient(135deg, #a78bfa 0%, #f0abfc 40%, #818cf8 100%)",
+            backgroundSize:"200% 200%",
+            animation:"shimmer 4s ease infinite",
+            WebkitBackgroundClip:"text",
+            WebkitTextFillColor:"transparent",
+            backgroundClip:"text",
+          }}>
+            Video Creators
+          </span>
         </h1>
 
         {/* Subtext */}
-        <p style={reveal(0.35)} className="text-white/45 text-lg max-w-md leading-relaxed mb-12 font-light">
-          You edit the videos, land the placements, collect the bags. Glaze keeps your client queue organized, your payments tracked, and your monthly goals in sight.
+        <p style={reveal(0.35)} className="text-white/40 text-lg max-w-md leading-relaxed mb-10 font-light">
+          Track promos, collect payments, hit your monthly goals. No spreadsheets, no lost DMs — just results.
         </p>
 
-        {/* CTA Button */}
-        <div style={reveal(0.48)}>
+        {/* CTAs */}
+        <div style={reveal(0.45)} className="flex flex-col sm:flex-row items-center gap-3">
           <button
             onClick={onEnter}
-            className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group select-none"
+            className="relative px-8 py-3.5 font-bold rounded-2xl active:scale-95 transition-all text-sm tracking-wide group select-none text-white"
             style={{
-              WebkitTapHighlightColor: "transparent",
-              WebkitTouchCallout: "none",
-              WebkitUserSelect: "none",
-              userSelect: "none",
+              background:"linear-gradient(135deg, #7c3aed, #a21caf)",
+              boxShadow:"0 0 40px rgba(139,92,246,0.4)",
+              WebkitTapHighlightColor:"transparent",
+              userSelect:"none",
             }}
           >
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10 scale-110" />
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 opacity-0 group-hover:opacity-60 blur-lg transition-opacity duration-500 -z-10 scale-105" />
-            Start tracking free
+            ✦ Start Creating Free
           </button>
-          <p className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
-</div>
+          <button onClick={onEnter} className="px-6 py-3.5 rounded-2xl text-sm font-semibold text-white/60 hover:text-white border border-white/10 hover:border-white/20 backdrop-blur-xl bg-white/[0.03] transition-all active:scale-95">
+            See how it works →
+          </button>
+        </div>
+        <p style={reveal(0.5)} className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
 
-        {/* Feature Cards */}
-        <div style={reveal(0.62)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">
+        {/* Feature Cards (magnetic) */}
+        <div style={reveal(0.62)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-20 max-w-2xl w-full text-left">
           {[
-            {icon:"queue",title:"Client Queue",body:"Keep every promo deal organized by deadline and priority. No more lost DMs or forgotten invoices."},
-            {icon:"money",title:"Earnings Tracker",body:"See your lifetime earnings, monthly goal progress, and which clients are paying the most."},
-            {icon:"proof",title:"Payment Proof",body:"Attach your TikTok links and payment screenshots to every completed deal."},
+            {icon:"queue", title:"Client Queue", body:"Keep every promo deal organized by deadline and priority. No more lost DMs or forgotten invoices."},
+            {icon:"money", title:"Earnings Tracker", body:"See your lifetime earnings, monthly goal progress, and which clients are paying the most."},
+            {icon:"proof", title:"Payment Proof", body:"Attach your TikTok links and payment screenshots to every completed deal."},
           ].map(f => (
             <MagneticCard key={f.title}>
               <SvgIcon name={f.icon} theme="dark" className="w-6 h-6 opacity-80" alt="" />
@@ -325,17 +321,177 @@ function LandingPage({ onEnter, creators, exiting }) {
             </MagneticCard>
           ))}
         </div>
+      </section>
 
-        {/* Carousel */}
-        <div style={reveal(0.78)} className="w-full">
-          <CreatorCarousel creators={creators} />
+      {/* HOW IT WORKS */}
+      <section className="relative z-10 px-6 pb-32 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-14">
+          <p className="text-violet-400/60 text-xs uppercase tracking-widest mb-3">simple process</p>
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-3">How It Works</h2>
+          <p className="text-white/35 text-base">From DM to paid in three steps.</p>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {[
+            {
+              num:"1",
+              title:"Add Your Promo",
+              body:"Drop in the song name, client, amount, and deadline. Takes 10 seconds.",
+              preview:(
+                <div className="mt-4 rounded-xl bg-black/30 border border-white/5 p-3 space-y-2">
+                  <div className="h-2 w-24 bg-violet-500/40 rounded-full" />
+                  <div className="h-2 w-16 bg-white/10 rounded-full" />
+                  <div className="flex gap-2 mt-3">
+                    <div className="flex-1 h-7 bg-white/5 border border-white/10 rounded-lg" />
+                    <div className="h-7 w-16 bg-violet-500/60 rounded-lg" />
+                  </div>
+                </div>
+              ),
+            },
+            {
+              num:"2",
+              title:"Track Everything",
+              body:"See your queue, deadlines, priorities, and earnings progress in real time.",
+              preview:(
+                <div className="mt-4 rounded-xl bg-black/30 border border-white/5 p-3 space-y-2">
+                  <div className="space-y-1.5">
+                    {["bg-violet-500/40","bg-fuchsia-500/30","bg-white/10"].map((c,i)=>(
+                      <div key={i} className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${i===0?"bg-violet-400":"bg-fuchsia-400"}`} />
+                        <div className={`h-2 rounded-full ${c}`} style={{width:`${70-i*15}%`}} />
+                        <div className="ml-auto text-[9px] text-emerald-500 font-bold">$</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden mt-3">
+                    <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full" style={{width:"62%"}} />
+                  </div>
+                </div>
+              ),
+            },
+            {
+              num:"3",
+              title:"Get Paid & Prove It",
+              body:"Mark complete, attach payment screenshots, and export your full history as CSV.",
+              preview:(
+                <div className="mt-4 rounded-xl bg-black/30 border border-white/5 p-3 space-y-2">
+                  <div className="flex items-center gap-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-sm">✓</div>
+                    <div className="space-y-0.5">
+                      <div className="h-1.5 w-20 bg-emerald-400/40 rounded-full" />
+                      <div className="h-1.5 w-12 bg-white/15 rounded-full" />
+                    </div>
+                    <div className="ml-auto text-xs text-emerald-400 font-bold">$250</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 h-6 bg-fuchsia-500/20 border border-fuchsia-500/20 rounded-lg flex items-center justify-center">
+                      <span className="text-[9px] text-fuchsia-400">proof ↗</span>
+                    </div>
+                    <div className="flex-1 h-6 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                      <span className="text-[9px] text-white/30">export CSV</span>
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+          ].map((step, i) => (
+            <div key={i} style={{ animation: `cardRevealIn 0.45s cubic-bezier(0.22,1,0.36,1) ${0.15+i*0.1}s both` }}
+              className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 relative overflow-hidden group hover:border-violet-500/30 transition-colors duration-300">
+              <div className="absolute -top-3 -left-1" style={{
+                fontFamily:"'Coolvetica', sans-serif",
+                fontSize:"5rem",
+                fontWeight:900,
+                lineHeight:1,
+                background:"linear-gradient(135deg, rgba(139,92,246,0.5), rgba(217,70,239,0.2))",
+                WebkitBackgroundClip:"text",
+                WebkitTextFillColor:"transparent",
+                backgroundClip:"text",
+                userSelect:"none",
+              }}>{step.num}</div>
+              <div className="pt-8">
+                <p className="text-white font-bold text-base mb-1">{step.title}</p>
+                <p className="text-white/35 text-xs leading-relaxed">{step.body}</p>
+                {step.preview}
+              </div>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
+                style={{background:"radial-gradient(ellipse 80% 60% at 50% 100%, rgba(139,92,246,0.07) 0%, transparent 70%)"}} />
+            </div>
+          ))}
+        </div>
+      </section>
 
-      </main>
+      {/* PLATFORMS */}
+      <section className="relative z-10 px-6 pb-32 text-center">
+        <div className="text-center mb-16">
+          <p className="text-violet-400/60 text-xs uppercase tracking-widest mb-3">where your work lives</p>
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-3">Built for the platforms<br />you create for</h2>
+          <p className="text-white/35 text-sm">Post promos wherever your clients want. Glaze tracks it all.</p>
+        </div>
+        <div className="relative max-w-2xl mx-auto h-64 sm:h-72">
+          {[
+            { name:"TikTok",     emoji:"🎵", top:"5%",  left:"8%",  delay:"0s"   },
+            { name:"Instagram",  emoji:"📸", top:"0%",  left:"38%", delay:"0.4s" },
+            { name:"YouTube",    emoji:"▶️", top:"5%",  right:"8%", delay:"0.8s" },
+            { name:"Spotify",    emoji:"🎧", top:"48%", left:"3%",  delay:"0.2s" },
+            { name:"SoundCloud", emoji:"☁️", top:"50%", right:"3%", delay:"0.6s" },
+            { name:"X / Twitter",emoji:"𝕏", top:"88%", left:"18%", delay:"1s"   },
+            { name:"Snapchat",   emoji:"👻", top:"85%", right:"18%",delay:"0.3s" },
+          ].map((p, i) => (
+            <div key={i} style={{
+              position:"absolute",
+              top:p.top, left:p.left, right:p.right,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:"4px",
+              animation:`orbitFloat ${4.5+i*0.4}s ease-in-out ${p.delay} infinite`,
+            }}>
+              <div style={{
+                width:"52px", height:"52px", borderRadius:"14px",
+                background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)",
+                backdropFilter:"blur(12px)", display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:"2rem",
+              }}>{p.emoji}</div>
+              <span style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",fontWeight:500}}>{p.name}</span>
+            </div>
+          ))}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <div className="backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] rounded-2xl px-6 py-4 text-center">
+              <p className="text-white font-bold text-sm">All platforms,</p>
+              <p className="text-white/40 text-xs">one tracker</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CREATOR CAROUSEL */}
+      <div className="w-full relative z-10">
+        <CreatorCarousel creators={creators} />
+      </div>
+
+      {/* SUPERPOWERS CTA */}
+      <section className="relative z-10 px-6 py-28 text-center">
+        <div className="max-w-xl mx-auto">
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
+            Stop leaving money<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">on the table.</span>
+          </h2>
+          <p className="text-white/35 text-base mb-10">Every promo you forget to follow up on is money you gave away for free. Glaze fixes that.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button onClick={onEnter}
+              className="px-8 py-3.5 font-bold rounded-2xl text-white text-sm transition-all active:scale-95 select-none"
+              style={{background:"linear-gradient(135deg,#7c3aed,#a21caf)", boxShadow:"0 0 40px rgba(139,92,246,0.35)", userSelect:"none"}}>
+              Start creating free →
+            </button>
+            <button onClick={onEnter} className="px-6 py-3.5 rounded-2xl text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/20 bg-white/[0.03] transition-all">
+              Share your ideas →
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* FAQ */}
-      <section style={reveal(0.88)} className="w-full max-w-2xl mx-auto px-6 pb-20 relative z-10">
-        <h2 className="text-2xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
+      <section className="w-full max-w-2xl mx-auto px-6 pb-20 relative z-10">
+        <div className="text-center mb-10">
+          <p className="text-violet-400/60 text-xs uppercase tracking-widest mb-2">got questions?</p>
+          <h2 className="text-3xl font-black text-white">Frequently Asked</h2>
+        </div>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
             <div key={i} className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
@@ -344,11 +500,11 @@ function LandingPage({ onEnter, creators, exiting }) {
                 className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
               >
                 <span className="text-white font-medium text-sm">{faq.q}</span>
-                <span className={`text-white/40 text-lg transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}>⌄</span>
+                <span className={`text-white/40 text-lg transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`}>⌄</span>
               </button>
               <div
                 className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ maxHeight: openFaq === i ? '200px' : '0', opacity: openFaq === i ? 1 : 0 }}
+                style={{ maxHeight: openFaq === i ? "200px" : "0", opacity: openFaq === i ? 1 : 0 }}
               >
                 <p className="text-white/50 text-sm px-4 pb-4 leading-relaxed">{faq.a}</p>
               </div>
@@ -357,10 +513,11 @@ function LandingPage({ onEnter, creators, exiting }) {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={reveal(0.95)} className="text-center pb-10 relative z-10 space-y-1">
-        <p className="text-white/20 text-xs">made by creators, for creators</p>
-        <p className="text-white/15 text-xs">sincerely, sapphire 🤍</p>
+      {/* FOOTER */}
+      <footer className="text-center pb-12 relative z-10 space-y-2">
+        <p className="text-white/20 text-sm font-bold tracking-tighter">glaze<span className="text-violet-400">.</span></p>
+        <p className="text-white/15 text-xs">made by creators, for creators</p>
+        <p className="text-white/10 text-xs">sincerely, sapphire 🤍</p>
         <a href="mailto:support@glaze.boo" className="text-white/15 hover:text-white/40 text-xs transition-colors block">support@glaze.boo</a>
       </footer>
 
@@ -756,9 +913,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [searchQuery, setSearchQuery] = useState("");
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
-    const aManual = a.order_index != null;
-    const bManual = b.order_index != null;
-    if (aManual && bManual) return a.order_index - b.order_index;
     if (b.priority !== a.priority) return b.priority - a.priority;
     return new Date(a.deadline||a.due_date||"9999") - new Date(b.deadline||b.due_date||"9999");
   });
@@ -795,16 +949,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
       return arr;
     });
   };
-  const handleDragEnd = async () => {
-    setDragId(null);
-    setDragOverId(null);
-    if (!orderedIds.length) return;
-    await Promise.all(
-      orderedIds.map((id, index) =>
-        supabase.from("promos").update({ order_index: index }).eq("id", id)
-      )
-    );
-  };
+  const handleDragEnd = () => { setDragId(null); setDragOverId(null); };
 
   return (
     <div className="space-y-5 pb-32 tab-enter">
@@ -1567,9 +1712,7 @@ export default function App() {
   useEffect(() => { if (!user) return; loadPromos(); loadSettings(); }, [user]);
 
   const loadPromos = async () => {
-    const { data } = await supabase.from("promos").select("*").eq("user_id", user.id)
-      .order("order_index", { ascending: true, nullsFirst: false })
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("promos").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     if (data) setPromos(data);
   };
   const loadSettings = async () => {
