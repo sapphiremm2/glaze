@@ -311,12 +311,6 @@ function LandingPage({ onEnter, creators, exiting }) {
             glaze<span className="text-violet-400">.</span>
           </span>
           <div className="w-px h-5 mx-1" style={{ background: "rgba(255,255,255,0.10)" }} />
-          <button onClick={onEnter} className="text-sm px-3 py-1.5 rounded-xl transition-colors"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-            onMouseEnter={e => e.target.style.color = "rgba(255,255,255,0.9)"}
-            onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.5)"}>
-            Pricing
-          </button>
           <button onClick={() => document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" })}
             className="text-sm px-3 py-1.5 rounded-xl transition-colors"
             style={{ color: "rgba(255,255,255,0.5)" }}
@@ -354,13 +348,13 @@ function LandingPage({ onEnter, creators, exiting }) {
         {/* Badge */}
         <div style={{ ...reveal(0.1), border: "1px solid rgba(139,92,246,0.3)", background: "rgba(139,92,246,0.1)", color: "#c4b5fd" }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8 tracking-widest uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-          BETA V0.1 · built for video editors
+          built for video editors
         </div>
 
         {/* Headline */}
         <h1 className="text-white leading-[0.92] mb-6 max-w-3xl"
           style={{ ...reveal(0.2), fontFamily: "'Coolvetica', sans-serif", fontSize: "clamp(3.5rem,9vw,7rem)" }}>
-          The Workspace for<br />
+          your promo<br />
           <span style={{
             fontFamily: "'Coolvetica', sans-serif",
             background: "linear-gradient(135deg, #a78bfa 0%, #f0abfc 40%, #818cf8 100%)",
@@ -369,12 +363,12 @@ function LandingPage({ onEnter, creators, exiting }) {
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-          }}>Video Creators</span>
+          }}>empire,</span><br />tracked.
         </h1>
 
         {/* Subtext */}
         <p style={{ ...reveal(0.35), color: "rgba(255,255,255,0.45)" }} className="text-lg max-w-md leading-relaxed mb-10 font-light">
-          Track promos, collect payments, and hit your monthly goals — directly from your browser. No spreadsheets required.
+          You edit the videos, land the placements, collect the bags. Glaze keeps your client queue organized, your payments tracked, and your monthly goals in sight.
         </p>
 
         {/* CTAs */}
