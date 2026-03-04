@@ -1964,9 +1964,9 @@ export default function App() {
       {/* ── DESKTOP LAYOUT (hidden on mobile) ── */}
       <div className="hidden lg:flex min-h-screen">
 
-        {/* Sidebar */}
-        <aside className="w-64 shrink-0 flex flex-col px-4 py-6 sticky top-0 h-screen"
-          style={{ borderRight: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)", backdropFilter: "blur(20px)" }}>
+        {/* Sidebar — fixed so it never scrolls away */}
+        <aside className="fixed top-0 left-0 h-screen w-64 flex flex-col px-4 py-6 z-30 overflow-y-auto"
+          style={{ borderRight: "1px solid rgba(255,255,255,0.06)", background: "rgba(8,8,16,0.92)", backdropFilter: "blur(20px)" }}>
           {/* Logo */}
           <div className="px-4 mb-8">
             <h1 className={`text-2xl font-black tracking-tighter ${g.text}`}>glaze<span className="text-violet-400">.</span></h1>
@@ -2017,8 +2017,8 @@ export default function App() {
           </button>
         </aside>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Main content — offset by sidebar width */}
+        <main className="flex-1 overflow-y-auto ml-64">
           <div className="max-w-5xl mx-auto px-8 py-8">
             {/* Desktop header */}
             <div className="flex items-center justify-between mb-8">
