@@ -142,18 +142,32 @@ function Confetti({ onDone }) {
 // ─── Creator Carousel ────────────────────────────────────────
 function CreatorCarousel({ creators }) {
   if (!creators.length) return null;
-  const doubled = [...creators, ...creators];
+  const minItems = 20;
+  const repeatCount = Math.ceil(minItems / creators.length) + 1;
+  const items = Array.from({ length: repeatCount }, () => creators).flat();
+  const singleSetWidth = creators.length * 168;
+  const duration = Math.max(creators.length * 4, 18);
+
   return (
     <div className="w-full overflow-hidden py-8">
       <p className="text-center text-white/20 text-xs uppercase tracking-widest mb-6">trusted by creators</p>
       <div className="relative w-full">
-        <div
-          className="flex gap-6 animate-scroll"
-          style={{ width: "max-content", willChange: "transform" }}
-        >
-          {doubled.map((c, i) => (
+        <style>{`
+          @keyframes carouselScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-${singleSetWidth}px); }
+          }
+          .carousel-track {
+            animation: carouselScroll ${duration}s linear infinite;
+            will-change: transform;
+          }
+          .carousel-track:hover { animation-play-state: paused; }
+        `}</style>
+        <div className="carousel-track flex gap-6" style={{ width: "max-content" }}>
+          {items.map((c, i) => (
             <a key={i} href={c.tiktok_url || "#"} target="_blank" rel="noreferrer"
-              className="flex flex-col items-center gap-2 w-36 shrink-0 group">
+              className="flex flex-col items-center gap-2 shrink-0 group"
+              style={{ width: "144px" }}>
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-violet-400/50 transition-colors">
                 {c.pfp_url ? (
                   <img src={c.pfp_url} alt={c.username} className="w-full h-full object-cover" />
@@ -168,8 +182,10 @@ function CreatorCarousel({ creators }) {
             </a>
           ))}
         </div>
-        <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#080810] to-transparent pointer-events-none z-10" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#080810] to-transparent pointer-events-none z-10" />
+        <div className="absolute left-0 top-0 bottom-0 w-24 pointer-events-none z-10"
+          style={{ background: "linear-gradient(to right, #080810, transparent)" }} />
+        <div className="absolute right-0 top-0 bottom-0 w-24 pointer-events-none z-10"
+          style={{ background: "linear-gradient(to left, #080810, transparent)" }} />
       </div>
     </div>
   );
