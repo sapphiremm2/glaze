@@ -236,14 +236,19 @@ function LandingPage({ onEnter, creators, exiting }) {
           <button
             onClick={onEnter}
             className="relative px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all text-sm tracking-wide group select-none"
-            style={{WebkitTapHighlightColor:"transparent", WebkitTouchCallout:"none"}}
+            style={{
+              WebkitTapHighlightColor: "transparent",
+              WebkitTouchCallout: "none",
+              WebkitUserSelect: "none",
+              userSelect: "none",
+            }}
           >
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 -z-10 scale-110" />
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 opacity-0 group-hover:opacity-60 blur-lg transition-opacity duration-500 -z-10 scale-105" />
             Start tracking free
           </button>
           <p className="text-white/20 text-xs mt-4">100% free, forever. no credit card needed</p>
-        </div>
+</div>
 
         {/* Feature Cards */}
         <div style={reveal(0.62)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-24 max-w-2xl w-full text-left">

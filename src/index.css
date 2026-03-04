@@ -119,3 +119,9 @@ html {
   from { opacity: 0; transform: translateY(16px); filter: blur(6px); }
   to   { opacity: 1; transform: translateY(0);    filter: blur(0px); }
 }
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
