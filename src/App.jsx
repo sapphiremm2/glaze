@@ -320,7 +320,7 @@ function LandingPage({ onEnter, creators, exiting }) {
       `}</style>
 
       {/* ── CENTERED PILL NAV ── */}
-      <div style={reveal(0)} className="flex justify-center pt-7 px-4 relative z-20">
+      <div style={reveal(0)} className="fixed top-5 left-0 right-0 flex justify-center z-50 px-4">
         <nav className="flex items-center gap-1 px-3 py-2 rounded-2xl backdrop-blur-2xl border"
           style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}>
           <span className="text-base font-black tracking-tighter text-white px-3 py-1">
@@ -349,7 +349,7 @@ function LandingPage({ onEnter, creators, exiting }) {
       </div>
 
       {/* ── HERO ── */}
-      <section className="relative flex flex-col items-center text-center px-6 pt-24 pb-36 z-10 overflow-hidden">
+      <section className="relative flex flex-col items-center text-center px-6 pt-36 pb-36 z-10 overflow-hidden">
 
         {/* Floating emoji orbs */}
         <FloatingOrb emoji="🎵" top="10%"  left="5%"   animDur={5.2} animDelay={0}   size="2.8rem" />
