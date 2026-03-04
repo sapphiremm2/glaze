@@ -738,7 +738,6 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
     setDragId(null);
     setDragOverId(null);
     if (!orderedIds.length) return;
-    // Persist the manual order — each card gets an order_index
     await Promise.all(
       orderedIds.map((id, index) =>
         supabase.from("promos").update({ order_index: index }).eq("id", id)
@@ -868,10 +867,50 @@ function StatsTab({ promos, goal, theme }) {
   );
 }
 
+// ─── Image Proof Modal ───────────────────────────────────────
+function ImageProofModal({ url, onClose }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <Overlay onClose={onClose}>
+      <div
+        className="relative w-full max-w-lg mx-auto animate-popIn"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute -top-10 right-0 text-white/50 hover:text-white text-sm transition-colors flex items-center gap-1.5"
+        >
+          close ×
+        </button>
+
+        {/* Image container */}
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+          {!loaded && (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-white/30 text-sm animate-pulse">loading proof…</div>
+            </div>
+          )}
+          <img
+            src={url}
+            alt="Payment proof"
+            onLoad={() => setLoaded(true)}
+            className="w-full h-auto max-h-[80vh] object-contain"
+            style={{ display: loaded ? "block" : "none" }}
+          />
+        </div>
+
+        <p className="text-center text-white/20 text-xs mt-3">payment proof</p>
+      </div>
+    </Overlay>
+  );
+}
+
 // ─── History Tab ─────────────────────────────────────────────
 function HistoryTab({ promos, onDelete, theme }) {
   const g = themes[theme];
   const [searchQuery, setSearchQuery] = useState("");
+  const [proofUrl, setProofUrl] = useState(null);
   
   const completed = promos.filter(p => p.completed).sort((a,b) => new Date(b.completed_at)-new Date(a.completed_at));
 
@@ -961,10 +1000,11 @@ function HistoryTab({ promos, onDelete, theme }) {
               </a>
             )}
             {p.work_link && <a href={p.work_link} target="_blank" rel="noreferrer" className="text-xs text-violet-500 hover:text-violet-400 underline underline-offset-2">View Video →</a>}
-            {p.screenshot_url && <a href={p.screenshot_url} target="_blank" rel="noreferrer" className="text-xs text-fuchsia-500 hover:text-fuchsia-400 underline underline-offset-2">Payment Proof →</a>}
+            {p.screenshot_url && <button onClick={() => setProofUrl(p.screenshot_url)} className="text-xs text-fuchsia-500 hover:text-fuchsia-400 underline underline-offset-2 transition-colors">Payment Proof →</button>}
           </div>
         </div>
       ))}
+      {proofUrl && <ImageProofModal url={proofUrl} onClose={() => setProofUrl(null)} />}
     </div>
   );
 }
