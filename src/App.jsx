@@ -695,6 +695,9 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [searchQuery, setSearchQuery] = useState("");
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
+    const aManual = a.order_index != null;
+    const bManual = b.order_index != null;
+    if (aManual && bManual) return a.order_index - b.order_index;
     if (b.priority !== a.priority) return b.priority - a.priority;
     return new Date(a.deadline||a.due_date||"9999") - new Date(b.deadline||b.due_date||"9999");
   });
@@ -731,7 +734,17 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
       return arr;
     });
   };
-  const handleDragEnd = () => { setDragId(null); setDragOverId(null); };
+  const handleDragEnd = async () => {
+    setDragId(null);
+    setDragOverId(null);
+    if (!orderedIds.length) return;
+    // Persist the manual order — each card gets an order_index
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        supabase.from("promos").update({ order_index: index }).eq("id", id)
+      )
+    );
+  };
 
   return (
     <div className="space-y-5 pb-32 tab-enter">
@@ -1494,7 +1507,9 @@ export default function App() {
   useEffect(() => { if (!user) return; loadPromos(); loadSettings(); }, [user]);
 
   const loadPromos = async () => {
-    const { data } = await supabase.from("promos").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase.from("promos").select("*").eq("user_id", user.id)
+      .order("order_index", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false });
     if (data) setPromos(data);
   };
   const loadSettings = async () => {
