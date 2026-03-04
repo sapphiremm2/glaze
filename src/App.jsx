@@ -528,7 +528,7 @@ function LandingPage({ onEnter, creators, exiting }) {
       </section>
 
       {/* ── PLATFORMS ── */}
-      <section className="relative z-10 pb-36 text-center px-6">
+      <section className="relative z-10 pb-36 text-center px-6 max-w-5xl mx-auto w-full">
         <div className="mb-16">
           <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "rgba(167,139,250,0.6)" }}>where your work lives</p>
           <h2 className="text-white font-black mb-3" style={{ fontSize: "clamp(1.8rem,5vw,3rem)" }}>
@@ -536,7 +536,7 @@ function LandingPage({ onEnter, creators, exiting }) {
           </h2>
           <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.9rem" }}>Post promos wherever your clients want. Glaze tracks it all.</p>
         </div>
-        <div className="relative max-w-2xl mx-auto" style={{ height: "280px" }}>
+        <div className="relative mx-auto" style={{ height: "280px", maxWidth: "700px" }}>
           {platforms.map((p, i) => (
             <div key={i} style={{
               position: "absolute",
@@ -564,7 +564,7 @@ function LandingPage({ onEnter, creators, exiting }) {
       </section>
 
       {/* ── CREATOR CAROUSEL ── */}
-      <div className="w-full relative z-10 pb-8">
+      <div className="w-full relative z-10 pb-8 max-w-5xl mx-auto overflow-hidden">
         <CreatorCarousel creators={creators} />
       </div>
 
