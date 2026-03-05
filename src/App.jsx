@@ -10,138 +10,62 @@ const ADMIN_EMAIL = "v7nilz@gmail.com";
 // ─── Global Animations ───────────────────────────────────────
 const GlobalStyles = () => (
   <style>{`
-    /* ────────────────────────────────────────────────
-       MOBILE  (< 1024px)  —  Apple-style: smooth, clean, no overshoot
-    ──────────────────────────────────────────────── */
-    .tab-enter {
-      animation: appleSlideIn 0.32s cubic-bezier(0.25,0.46,0.45,0.94) both;
-    }
+    /* ── Shared keyframes (used by both mobile + desktop) ── */
     @keyframes appleSlideIn {
       from { opacity:0; transform:translateY(12px); }
       to   { opacity:1; transform:translateY(0); }
-    }
-
-    @keyframes cardRevealIn {
-      from { opacity:0; transform:translateY(10px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-    @keyframes cardReveal {
-      from { opacity:0; transform:translateY(14px) scale(0.98); }
-      to   { opacity:1; transform:translateY(0) scale(1); }
-    }
-
-    .animate-popIn {
-      animation: applePopIn 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
     }
     @keyframes applePopIn {
       from { opacity:0; transform:scale(0.94) translateY(8px); }
       to   { opacity:1; transform:scale(1) translateY(0); }
     }
-
-    .stat-card {
-      animation: appleSlideIn 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both;
-    }
-    .animate-numPop {
-      animation: appleSlideIn 0.35s cubic-bezier(0.25,0.46,0.45,0.94) both;
-    }
-    .animate-fadeIn {
-      animation: appleFadeIn 0.25s ease both;
-    }
     @keyframes appleFadeIn {
       from { opacity:0; transform:translateY(3px); }
       to   { opacity:1; transform:translateY(0); }
     }
-
-    /* ────────────────────────────────────────────────
-       DESKTOP (≥ 1024px)  —  Bouncy & fun
-    ──────────────────────────────────────────────── */
-    @media (min-width: 1024px) {
-      .tab-enter {
-        animation: tabBounceIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
-      }
-      @keyframes tabBounceIn {
-        0%   { opacity:0; transform:translateY(16px) scale(0.97); }
-        60%  { opacity:1; transform:translateY(-4px) scale(1.01); }
-        100% { opacity:1; transform:translateY(0) scale(1); }
-      }
-
-      @keyframes cardRevealIn {
-        0%   { opacity:0; transform:translateY(20px) scale(0.96); }
-        60%  { transform:translateY(-3px) scale(1.01); }
-        100% { opacity:1; transform:translateY(0) scale(1); }
-      }
-      @keyframes cardReveal {
-        0%   { opacity:0; transform:translateY(24px) scale(0.95); }
-        70%  { transform:translateY(-4px) scale(1.02); }
-        100% { opacity:1; transform:translateY(0) scale(1); }
-      }
-
-      .animate-popIn {
-        animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
-      }
-      @keyframes popIn {
-        0%   { opacity:0; transform:scale(0.85) translateY(12px); }
-        70%  { transform:scale(1.03) translateY(-2px); }
-        100% { opacity:1; transform:scale(1) translateY(0); }
-      }
-
-      .stat-card {
-        animation: statCardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-      }
-      @keyframes statCardIn {
-        0%   { opacity:0; transform:scale(0.9) translateY(12px); }
-        70%  { transform:scale(1.02) translateY(-2px); }
-        100% { opacity:1; transform:scale(1) translateY(0); }
-      }
-
-      .animate-numPop {
-        animation: numPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-      }
-      @keyframes numPop {
-        0%   { transform:scale(0.7); opacity:0; }
-        70%  { transform:scale(1.15); }
-        100% { transform:scale(1); opacity:1; }
-      }
-
-      .animate-fadeIn {
-        animation: fadeIn 0.3s ease both;
-      }
-      @keyframes fadeIn {
-        from { opacity:0; transform:translateY(4px); }
-        to   { opacity:1; transform:translateY(0); }
-      }
-
-      .promo-card-wrap:hover { transform:translateY(-1px); }
-      .side-nav-btn:hover { transform:translateX(3px); }
-      .side-nav-btn:active { transform:scale(0.96); }
+    @keyframes tabBounceIn {
+      0%   { opacity:0; transform:translateY(16px) scale(0.97); }
+      60%  { opacity:1; transform:translateY(-4px) scale(1.01); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
     }
-
-    /* ── Shared (both platforms) ── */
-    .promo-card-wrap { transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-    .side-nav-btn { transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-    .progress-fill { transition:width 1s cubic-bezier(0.34,1.56,0.64,1); }
-
-    .done-btn:active { animation:doneBtnBounce 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes doneBtnBounce {
-      0%   { transform:scale(1); }
-      40%  { transform:scale(0.85); }
-      100% { transform:scale(1.1); }
+    @keyframes cardRevealIn {
+      0%   { opacity:0; transform:translateY(20px) scale(0.96); }
+      60%  { transform:translateY(-3px) scale(1.01); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
     }
-
-    .animate-spin-once { animation:spinOnce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
+    @keyframes cardReveal {
+      0%   { opacity:0; transform:translateY(24px) scale(0.95); }
+      70%  { transform:translateY(-4px) scale(1.02); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes popIn {
+      0%   { opacity:0; transform:scale(0.85) translateY(12px); }
+      70%  { transform:scale(1.03) translateY(-2px); }
+      100% { opacity:1; transform:scale(1) translateY(0); }
+    }
+    @keyframes statCardIn {
+      0%   { opacity:0; transform:scale(0.9) translateY(12px); }
+      70%  { transform:scale(1.02) translateY(-2px); }
+      100% { opacity:1; transform:scale(1) translateY(0); }
+    }
+    @keyframes numPop {
+      0%   { transform:scale(0.7); opacity:0; }
+      70%  { transform:scale(1.15); }
+      100% { transform:scale(1); opacity:1; }
+    }
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(4px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
     @keyframes jiggle {
       0%,100% { transform:rotate(-1.5deg) scale(0.98); }
       50%     { transform:rotate(1.5deg) scale(0.98); }
     }
-
-    /* Celebration shared */
-    @keyframes goalSmash {
-      0%   { opacity:0; transform:scale(0.5) rotate(-8deg); }
-      50%  { transform:scale(1.15) rotate(3deg); }
-      70%  { transform:scale(0.95) rotate(-1deg); }
-      100% { opacity:1; transform:scale(1) rotate(0deg); }
+    @keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes doneBtnBounce {
+      0%   { transform:scale(1); }
+      40%  { transform:scale(0.85); }
+      100% { transform:scale(1.1); }
     }
     @keyframes goalFloat {
       0%,100% { transform:translateY(0px) rotate(-2deg); }
@@ -168,6 +92,32 @@ const GlobalStyles = () => (
       50%  { background-position:100% 50%; }
       100% { background-position:0% 50%; }
     }
+
+    /* ── MOBILE (default): Apple-style smooth, no overshoot ── */
+    .tab-enter        { animation: appleSlideIn 0.32s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .animate-popIn    { animation: applePopIn   0.28s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .stat-card        { animation: appleSlideIn 0.3s  cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .animate-numPop   { animation: appleSlideIn 0.35s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .animate-fadeIn   { animation: appleFadeIn  0.25s ease both; }
+
+    /* ── DESKTOP (≥1024px): Bouncy & springy ── */
+    @media (min-width: 1024px) {
+      .tab-enter      { animation: tabBounceIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+      .animate-popIn  { animation: popIn       0.4s  cubic-bezier(0.34,1.56,0.64,1) both; }
+      .stat-card      { animation: statCardIn  0.5s  cubic-bezier(0.34,1.56,0.64,1) both; }
+      .animate-numPop { animation: numPop      0.5s  cubic-bezier(0.34,1.56,0.64,1) both; }
+      .animate-fadeIn { animation: fadeIn      0.3s  ease both; }
+      .promo-card-wrap:hover  { transform: translateY(-1px); }
+      .side-nav-btn:hover     { transform: translateX(3px); }
+      .side-nav-btn:active    { transform: scale(0.96); }
+    }
+
+    /* ── Shared ── */
+    .promo-card-wrap  { transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .side-nav-btn     { transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .progress-fill    { transition: width 1s cubic-bezier(0.34,1.56,0.64,1); }
+    .animate-spin-once { animation: spinOnce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+    .done-btn:active  { animation: doneBtnBounce 0.3s cubic-bezier(0.34,1.56,0.64,1); }
 
     /* ── Expandable search ── */
     .search-expand {
@@ -2286,6 +2236,7 @@ export default function App() {
   const g = themes[theme];
 
   const [desktopSearch, setDesktopSearch] = useState("");
+  const [ctrlN, setCtrlN] = useState(false);
 
   useEffect(() => { localStorage.setItem("glaze-theme", theme); }, [theme]);
 
@@ -2379,7 +2330,7 @@ export default function App() {
 
   // ── DESKTOP SIDEBAR NAV BUTTON ──
   const SideNavBtn = ({ id, icon, label }) => (
-    <button onClick={() => setTab(id)}
+    <button onClick={() => { setTab(id); setDesktopSearch(""); }}
       className="side-nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left"
       style={{
         background: tab === id ? "rgba(139,92,246,0.2)" : "transparent",
