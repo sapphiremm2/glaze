@@ -1435,9 +1435,14 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const monthEarned = promos.filter(p => p.completed && monthKey(p.completed_at) === thisMonth()).reduce((s,p) => s+p.amount, 0);
   const pct = Math.min(100, Math.round((monthEarned/(goal||1))*100));
 
-  // Fire goal celebration when crossing 100%
+  // Fire goal celebration only once per month
   useEffect(() => {
-    if (prevPct.current < 100 && pct >= 100) setShowGoalCelebration(true);
+    const key = `glaze-goal-celebrated-${thisMonth()}`;
+    const alreadySeen = localStorage.getItem(key);
+    if (prevPct.current < 100 && pct >= 100 && !alreadySeen) {
+      setShowGoalCelebration(true);
+      localStorage.setItem(key, "1");
+    }
     prevPct.current = pct;
   }, [pct]);
 
@@ -1559,14 +1564,18 @@ function StatsTab({ promos, goal, theme }) {
   const sortedMonths = [...months].sort((a,b) => a[0].localeCompare(b[0]));
   const fmtMonth = k => { const [y,m] = k.split("-"); return new Date(y,m-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"}); };
 
-  // Fire best month celebration when current month becomes the new record
   const currentMonthKey = thisMonth();
   const isCurrentMonthBest = bestMonth && bestMonth[0] === currentMonthKey;
+
+  // Fire best month celebration only once per new record
   useEffect(() => {
     if (!bestMonth) return;
+    const key = `glaze-bestmonth-celebrated-${bestMonth[0]}`;
+    const alreadySeen = localStorage.getItem(key);
     const prev = prevBestMonth.current;
-    if (isCurrentMonthBest && prev !== null && bestMonth[1] > (prev || 0)) {
+    if (isCurrentMonthBest && prev !== null && bestMonth[1] > (prev || 0) && !alreadySeen) {
       setShowBestMonth(true);
+      localStorage.setItem(key, "1");
     }
     prevBestMonth.current = bestMonth[1];
   }, [bestMonth?.[1]]);
