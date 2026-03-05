@@ -7,6 +7,274 @@ const monthKey = (d) => { const dt = new Date(d); return `${dt.getFullYear()}-${
 const thisMonth = () => monthKey(new Date());
 const ADMIN_EMAIL = "v7nilz@gmail.com";
 
+// ─── Global Animations ───────────────────────────────────────
+const GlobalStyles = () => (
+  <style>{`
+    /* ── Tab transitions ── */
+    .tab-enter { animation: tabBounceIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes tabBounceIn {
+      0%   { opacity:0; transform:translateY(16px) scale(0.97); }
+      60%  { opacity:1; transform:translateY(-4px) scale(1.01); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* ── Card reveals ── */
+    @keyframes cardRevealIn {
+      0%   { opacity:0; transform:translateY(20px) scale(0.96); }
+      60%  { transform:translateY(-3px) scale(1.01); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes cardReveal {
+      0%   { opacity:0; transform:translateY(24px) scale(0.95); }
+      70%  { transform:translateY(-4px) scale(1.02); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* ── Modal pop ── */
+    .animate-popIn { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes popIn {
+      0%   { opacity:0; transform:scale(0.85) translateY(12px); }
+      70%  { transform:scale(1.03) translateY(-2px); }
+      100% { opacity:1; transform:scale(1) translateY(0); }
+    }
+
+    /* ── Jiggle (drag-over) ── */
+    @keyframes jiggle {
+      0%,100% { transform:rotate(-1.5deg) scale(0.98); }
+      50%     { transform:rotate(1.5deg) scale(0.98); }
+    }
+
+    /* ── Spin once (vinyl) ── */
+    .animate-spin-once { animation:spinOnce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    /* ── Fade in ── */
+    .animate-fadeIn { animation:fadeIn 0.3s ease both; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Number count bounce ── */
+    .animate-numPop { animation:numPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes numPop {
+      0%   { transform:scale(0.7); opacity:0; }
+      70%  { transform:scale(1.15); }
+      100% { transform:scale(1); opacity:1; }
+    }
+
+    /* ── Stat card entrance ── */
+    .stat-card { animation:statCardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes statCardIn {
+      0%   { opacity:0; transform:scale(0.9) translateY(12px); }
+      70%  { transform:scale(1.02) translateY(-2px); }
+      100% { opacity:1; transform:scale(1) translateY(0); }
+    }
+
+    /* ── Goal smash ── */
+    @keyframes goalSmash {
+      0%   { opacity:0; transform:scale(0.5) rotate(-8deg); }
+      50%  { transform:scale(1.15) rotate(3deg); }
+      70%  { transform:scale(0.95) rotate(-1deg); }
+      100% { opacity:1; transform:scale(1) rotate(0deg); }
+    }
+    @keyframes goalFloat {
+      0%,100% { transform:translateY(0px) rotate(-2deg); }
+      50%     { transform:translateY(-10px) rotate(2deg); }
+    }
+    @keyframes starSpin {
+      0%   { transform:rotate(0deg) scale(0); opacity:0; }
+      50%  { opacity:1; }
+      100% { transform:rotate(720deg) scale(1); opacity:0; }
+    }
+    @keyframes ribbonDrop {
+      0%   { opacity:0; transform:translateY(-40px) scaleX(0.6); }
+      60%  { transform:translateY(4px) scaleX(1.04); }
+      100% { opacity:1; transform:translateY(0) scaleX(1); }
+    }
+
+    /* ── Best month crown ── */
+    @keyframes crownBounce {
+      0%   { transform:translateY(-30px) scale(0.5) rotate(-15deg); opacity:0; }
+      60%  { transform:translateY(6px) scale(1.1) rotate(5deg); opacity:1; }
+      80%  { transform:translateY(-3px) scale(0.97) rotate(-2deg); }
+      100% { transform:translateY(0) scale(1) rotate(0deg); opacity:1; }
+    }
+    @keyframes shimmerBg {
+      0%   { background-position:0% 50%; }
+      50%  { background-position:100% 50%; }
+      100% { background-position:0% 50%; }
+    }
+
+    /* ── Promo card hover ── */
+    .promo-card-wrap:hover { transform:translateY(-1px); }
+    .promo-card-wrap { transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+
+    /* ── Done button bounce ── */
+    .done-btn:active { animation:doneBtnBounce 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes doneBtnBounce {
+      0%   { transform:scale(1); }
+      40%  { transform:scale(0.85); }
+      100% { transform:scale(1.1); }
+    }
+
+    /* ── Progress bar fill ── */
+    .progress-fill { transition:width 1s cubic-bezier(0.34,1.56,0.64,1); }
+
+    /* ── Sidebar nav hover ── */
+    .side-nav-btn { transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .side-nav-btn:hover { transform:translateX(3px); }
+    .side-nav-btn:active { transform:scale(0.96); }
+  `}</style>
+);
+
+// ─── Goal Celebration Overlay ────────────────────────────────
+function GoalCelebration({ goal, earned, onDone }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => { setVisible(false); setTimeout(onDone, 400); }, 4500);
+    return () => clearTimeout(t);
+  }, []);
+
+  const stars = Array.from({ length: 12 }, (_, i) => ({
+    angle: (i / 12) * 360,
+    delay: i * 0.08,
+    size: 16 + Math.random() * 16,
+  }));
+
+  return createPortal(
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "24px",
+      background: "rgba(0,0,0,0.75)",
+      backdropFilter: "blur(16px)",
+      transition: "opacity 0.4s ease",
+      opacity: visible ? 1 : 0,
+      pointerEvents: visible ? "auto" : "none",
+    }} onClick={() => { setVisible(false); setTimeout(onDone, 400); }}>
+
+      {/* Spinning stars around card */}
+      {stars.map((s, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          left: "50%", top: "50%",
+          width: s.size, height: s.size,
+          marginLeft: -s.size/2, marginTop: -s.size/2,
+          transform: `rotate(${s.angle}deg) translateY(-160px)`,
+          animation: `starSpin 1.5s ease ${s.delay}s 3`,
+          fontSize: s.size,
+          pointerEvents: "none",
+        }}>⭐</div>
+      ))}
+
+      <div style={{
+        background: "linear-gradient(135deg,#1a0a30,#0d0820)",
+        border: "1px solid rgba(139,92,246,0.4)",
+        borderRadius: "28px",
+        padding: "40px 48px",
+        textAlign: "center",
+        maxWidth: "380px",
+        width: "100%",
+        boxShadow: "0 0 80px rgba(139,92,246,0.3), 0 0 160px rgba(217,70,239,0.15)",
+        animation: "ribbonDrop 0.6s cubic-bezier(0.34,1.56,0.64,1) both",
+      }} onClick={e => e.stopPropagation()}>
+
+        <div style={{ fontSize: "4rem", animation: "goalFloat 2s ease-in-out infinite", display: "inline-block", marginBottom: "12px" }}>🏆</div>
+
+        <div style={{
+          fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.2em",
+          color: "rgba(167,139,250,0.7)", textTransform: "uppercase", marginBottom: "8px",
+        }}>Goal Crushed</div>
+
+        <h2 style={{
+          fontSize: "2.8rem", fontWeight: 900,
+          background: "linear-gradient(135deg,#a78bfa,#f0abfc,#818cf8)",
+          backgroundSize: "200% 200%",
+          animation: "shimmerBg 2s ease infinite",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+          lineHeight: 1.1, marginBottom: "8px",
+        }}>{fmt(earned)}</h2>
+
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", marginBottom: "4px" }}>
+          You hit your <span style={{ color: "#a78bfa", fontWeight: 700 }}>{fmt(goal)}</span> goal this month!
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.75rem", marginTop: "20px" }}>tap anywhere to dismiss</p>
+
+        {/* shimmer border animation */}
+        <div style={{
+          position: "absolute", inset: -1, borderRadius: "28px", zIndex: -1,
+          background: "linear-gradient(135deg,#7c3aed,#d946ef,#7c3aed)",
+          backgroundSize: "200% 200%",
+          animation: "shimmerBg 3s ease infinite",
+          WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+          WebkitMaskComposite: "xor",
+          maskComposite: "exclude",
+          padding: "1px",
+        }} />
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ─── Best Month Celebration ───────────────────────────────────
+function BestMonthCelebration({ amount, month, onDone }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => { setVisible(false); setTimeout(onDone, 400); }, 4500);
+    return () => clearTimeout(t);
+  }, []);
+
+  return createPortal(
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "24px",
+      background: "rgba(0,0,0,0.75)",
+      backdropFilter: "blur(16px)",
+      transition: "opacity 0.4s ease",
+      opacity: visible ? 1 : 0,
+      pointerEvents: visible ? "auto" : "none",
+    }} onClick={() => { setVisible(false); setTimeout(onDone, 400); }}>
+
+      <div style={{
+        background: "linear-gradient(135deg,#0f1a0a,#0d1a10)",
+        border: "1px solid rgba(16,185,129,0.35)",
+        borderRadius: "28px",
+        padding: "40px 48px",
+        textAlign: "center",
+        maxWidth: "380px",
+        width: "100%",
+        boxShadow: "0 0 80px rgba(16,185,129,0.2), 0 0 160px rgba(52,211,153,0.1)",
+        animation: "ribbonDrop 0.6s cubic-bezier(0.34,1.56,0.64,1) both",
+        position: "relative", overflow: "hidden",
+      }} onClick={e => e.stopPropagation()}>
+
+        <div style={{ fontSize: "4rem", animation: "crownBounce 0.8s cubic-bezier(0.34,1.56,0.64,1) both", display: "inline-block", marginBottom: "12px" }}>👑</div>
+
+        <div style={{
+          fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.2em",
+          color: "rgba(52,211,153,0.7)", textTransform: "uppercase", marginBottom: "8px",
+        }}>New Record</div>
+
+        <h2 style={{
+          fontSize: "2.8rem", fontWeight: 900,
+          background: "linear-gradient(135deg,#34d399,#6ee7b7,#10b981)",
+          backgroundSize: "200% 200%",
+          animation: "shimmerBg 2s ease infinite",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+          lineHeight: 1.1, marginBottom: "8px",
+        }}>{fmt(amount)}</h2>
+
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", marginBottom: "4px" }}>
+          Your best earning month <span style={{ color: "#34d399", fontWeight: 700 }}>ever</span>! 🎉
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.8rem" }}>{month}</p>
+        <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.75rem", marginTop: "20px" }}>tap anywhere to dismiss</p>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ─── Icons (SVGs in /public/icons) ────────────────────────────
 const ICONS = {
   queue: "inbox-svgrepo-com.svg",
@@ -988,7 +1256,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
 
   return (
     <>
-      <div style={{ animation: `cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s both` }}>
+      <div style={{ animation: `cardRevealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s both` }} className="promo-card-wrap">
         <div
           draggable
           onDragStart={() => onDragStart(promo.id)}
@@ -1036,7 +1304,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
             <button onClick={() => onEdit(promo)} aria-label="Edit promo" className={`text-xs ${g.muted} hover:text-violet-400 px-1.5 py-1.5 rounded-lg transition-all`}>
               <SvgIcon name="edit" theme={theme} className="w-4 h-4 opacity-80" alt="" />
             </button>
-            <button onClick={() => onComplete(promo)} className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
+            <button onClick={() => onComplete(promo)} className="done-btn text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-500 px-2 py-1.5 rounded-lg transition-all">Done</button>
             <button onClick={() => setConfirmDelete(true)} className={`${g.muted} hover:text-rose-400 transition-colors text-lg leading-none px-1`}>×</button>
           </div>
         </div>
@@ -1056,11 +1324,13 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   const [goalInput, setGoalInput] = useState(goal);
   const [completingPromo, setCompletingPromo] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showGoalCelebration, setShowGoalCelebration] = useState(false);
   const [editingPromo, setEditingPromo] = useState(null);
   const [dragId, setDragId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [orderedIds, setOrderedIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const prevPct = useRef(0);
 
   const basePromos = promos.filter(p => !p.completed).sort((a,b) => {
     const aManual = a.order_index != null;
@@ -1087,6 +1357,13 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 
   const monthEarned = promos.filter(p => p.completed && monthKey(p.completed_at) === thisMonth()).reduce((s,p) => s+p.amount, 0);
   const pct = Math.min(100, Math.round((monthEarned/(goal||1))*100));
+
+  // Fire goal celebration when crossing 100%
+  useEffect(() => {
+    if (prevPct.current < 100 && pct >= 100) setShowGoalCelebration(true);
+    prevPct.current = pct;
+  }, [pct]);
+
   const saveGoal = () => { onUpdateGoal(parseFloat(goalInput)||0); setEditingGoal(false); };
   const handleComplete = async (id, extra) => { await onComplete(id, extra); setShowConfetti(true); };
 
@@ -1116,6 +1393,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   return (
     <div className="space-y-5 pb-4 lg:pb-8 tab-enter">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
+      {showGoalCelebration && <GoalCelebration goal={goal} earned={monthEarned} onDone={() => setShowGoalCelebration(false)} />}
 
       <div className={`${g.card} space-y-3`}>
         <div className="flex items-center justify-between text-sm">
@@ -1136,7 +1414,8 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
           </button>
         </div>
         <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-700" style={{width:`${pct}%`}} />
+          <div className={`h-full rounded-full progress-fill ${pct >= 100 ? "bg-gradient-to-r from-violet-400 via-fuchsia-400 to-emerald-400" : "bg-gradient-to-r from-violet-500 to-fuchsia-500"}`}
+            style={{ width:`${pct}%` }} />
         </div>
         <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
       </div>
@@ -1182,6 +1461,8 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 // ─── Stats Tab ───────────────────────────────────────────────
 function StatsTab({ promos, goal, theme }) {
   const g = themes[theme];
+  const [showBestMonth, setShowBestMonth] = useState(false);
+  const prevBestMonth = useRef(null);
   const completed = promos.filter(p => p.completed);
   const active = promos.filter(p => !p.completed);
   const totalEarned = completed.reduce((s,p) => s+p.amount, 0);
@@ -1199,23 +1480,50 @@ function StatsTab({ promos, goal, theme }) {
   const bestMonth = [...months].sort((a,b) => b[1]-a[1])[0];
   const sortedMonths = [...months].sort((a,b) => a[0].localeCompare(b[0]));
   const fmtMonth = k => { const [y,m] = k.split("-"); return new Date(y,m-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"}); };
+
+  // Fire best month celebration when current month becomes the new record
+  const currentMonthKey = thisMonth();
+  const isCurrentMonthBest = bestMonth && bestMonth[0] === currentMonthKey;
+  useEffect(() => {
+    if (!bestMonth) return;
+    const prev = prevBestMonth.current;
+    if (isCurrentMonthBest && prev !== null && bestMonth[1] > (prev || 0)) {
+      setShowBestMonth(true);
+    }
+    prevBestMonth.current = bestMonth[1];
+  }, [bestMonth?.[1]]);
+
   return (
     <div className="space-y-4 pb-4 lg:pb-8 tab-enter">
-      <div className={`${g.card} text-center`}>
+      {showBestMonth && bestMonth && (
+        <BestMonthCelebration
+          amount={bestMonth[1]}
+          month={fmtMonth(bestMonth[0])}
+          onDone={() => setShowBestMonth(false)}
+        />
+      )}
+      <div className={`${g.card} text-center stat-card`} style={{ animationDelay: "0s" }}>
         <p className={`${g.muted} text-xs uppercase tracking-widest mb-1`}>Lifetime Earnings</p>
-        <p className={`text-5xl font-black ${g.text}`}>{fmt(totalEarned)}</p>
+        <p className={`text-5xl font-black ${g.text} animate-numPop`}>{fmt(totalEarned)}</p>
         <p className={`${g.muted} text-sm mt-1`}>across {completed.length} promos</p>
       </div>
-      <div className={`${g.card} space-y-3`}>
+      <div className={`${g.card} space-y-3 stat-card`} style={{ animationDelay: "0.08s" }}>
         <div className="flex justify-between text-sm"><span className={g.subtext}>This month</span><span className={g.subtext}>Goal: {fmt(goal)}</span></div>
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-700" style={{width:`${pct}%`}} /></div>
+        <div className="h-2 bg-white/10 rounded-full overflow-hidden"><div className={`h-full rounded-full progress-fill ${pct >= 100 ? "bg-gradient-to-r from-violet-400 via-fuchsia-400 to-emerald-400" : "bg-gradient-to-r from-violet-500 to-fuchsia-500"}`} style={{width:`${pct}%`}} /></div>
         <div className="flex justify-between text-xs"><span className={g.muted}>{fmt(monthEarned)} earned</span><span className={g.muted}>{pct}%</span></div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Avg / promo</p><p className={`text-2xl font-bold ${g.text}`}>{fmt(avgPayment)}</p></div>
-        <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Projection</p><p className="text-2xl font-bold text-emerald-500">{fmt(projection)}</p><p className={`text-[10px] ${g.muted}`}>if all active pay</p></div>
-        {bestClient && <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Best Client</p><p className={`${g.text} font-bold truncate`}>{bestClient[0]}</p><p className="text-violet-500 text-sm">{fmt(bestClient[1])}</p></div>}
-        {bestMonth && <div className={g.card}><p className={`${g.muted} text-xs mb-1`}>Best Month</p><p className={`${g.text} font-bold`}>{fmtMonth(bestMonth[0])}</p><p className="text-fuchsia-500 text-sm">{fmt(bestMonth[1])}</p></div>}
+        <div className={`${g.card} stat-card`} style={{ animationDelay: "0.14s" }}><p className={`${g.muted} text-xs mb-1`}>Avg / promo</p><p className={`text-2xl font-bold ${g.text} animate-numPop`}>{fmt(avgPayment)}</p></div>
+        <div className={`${g.card} stat-card`} style={{ animationDelay: "0.18s" }}><p className={`${g.muted} text-xs mb-1`}>Projection</p><p className="text-2xl font-bold text-emerald-500 animate-numPop">{fmt(projection)}</p><p className={`text-[10px] ${g.muted}`}>if all active pay</p></div>
+        {bestClient && <div className={`${g.card} stat-card`} style={{ animationDelay: "0.22s" }}><p className={`${g.muted} text-xs mb-1`}>Best Client</p><p className={`${g.text} font-bold truncate`}>{bestClient[0]}</p><p className="text-violet-500 text-sm">{fmt(bestClient[1])}</p></div>}
+        {bestMonth && (
+          <div className={`${g.card} stat-card`} style={{ animationDelay: "0.26s", position: "relative", overflow: "hidden" }}>
+            {isCurrentMonthBest && <div style={{ position: "absolute", top: 6, right: 8, fontSize: "1rem" }}>👑</div>}
+            <p className={`${g.muted} text-xs mb-1`}>Best Month</p>
+            <p className={`${g.text} font-bold`}>{fmtMonth(bestMonth[0])}</p>
+            <p className="text-fuchsia-500 text-sm animate-numPop">{fmt(bestMonth[1])}</p>
+          </div>
+        )}
       </div>
       {sortedMonths.length > 0 && (
         <div className={`${g.card} space-y-3`}>
@@ -1949,7 +2257,7 @@ export default function App() {
   // ── DESKTOP SIDEBAR NAV BUTTON ──
   const SideNavBtn = ({ id, icon, label }) => (
     <button onClick={() => setTab(id)}
-      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left"
+      className="side-nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left"
       style={{
         background: tab === id ? "rgba(139,92,246,0.2)" : "transparent",
         color: tab === id ? "#a78bfa" : "rgba(255,255,255,0.4)",
@@ -1965,6 +2273,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={g.bgStyle}>
+      <GlobalStyles />
 
       {/* ── MOBILE LAYOUT (hidden on lg+) ── */}
       <div className="lg:hidden max-w-lg mx-auto px-4 pt-6">
