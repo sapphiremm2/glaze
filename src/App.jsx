@@ -10,65 +10,133 @@ const ADMIN_EMAIL = "v7nilz@gmail.com";
 // ─── Global Animations ───────────────────────────────────────
 const GlobalStyles = () => (
   <style>{`
-    /* ── Tab transitions ── */
-    .tab-enter { animation: tabBounceIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
-    @keyframes tabBounceIn {
-      0%   { opacity:0; transform:translateY(16px) scale(0.97); }
-      60%  { opacity:1; transform:translateY(-4px) scale(1.01); }
-      100% { opacity:1; transform:translateY(0) scale(1); }
+    /* ────────────────────────────────────────────────
+       MOBILE  (< 1024px)  —  Apple-style: smooth, clean, no overshoot
+    ──────────────────────────────────────────────── */
+    .tab-enter {
+      animation: appleSlideIn 0.32s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    }
+    @keyframes appleSlideIn {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
     }
 
-    /* ── Card reveals ── */
     @keyframes cardRevealIn {
-      0%   { opacity:0; transform:translateY(20px) scale(0.96); }
-      60%  { transform:translateY(-3px) scale(1.01); }
-      100% { opacity:1; transform:translateY(0) scale(1); }
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
     }
     @keyframes cardReveal {
-      0%   { opacity:0; transform:translateY(24px) scale(0.95); }
-      70%  { transform:translateY(-4px) scale(1.02); }
-      100% { opacity:1; transform:translateY(0) scale(1); }
+      from { opacity:0; transform:translateY(14px) scale(0.98); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
     }
 
-    /* ── Modal pop ── */
-    .animate-popIn { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
-    @keyframes popIn {
-      0%   { opacity:0; transform:scale(0.85) translateY(12px); }
-      70%  { transform:scale(1.03) translateY(-2px); }
-      100% { opacity:1; transform:scale(1) translateY(0); }
+    .animate-popIn {
+      animation: applePopIn 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    }
+    @keyframes applePopIn {
+      from { opacity:0; transform:scale(0.94) translateY(8px); }
+      to   { opacity:1; transform:scale(1) translateY(0); }
     }
 
-    /* ── Jiggle (drag-over) ── */
+    .stat-card {
+      animation: appleSlideIn 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    }
+    .animate-numPop {
+      animation: appleSlideIn 0.35s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    }
+    .animate-fadeIn {
+      animation: appleFadeIn 0.25s ease both;
+    }
+    @keyframes appleFadeIn {
+      from { opacity:0; transform:translateY(3px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ────────────────────────────────────────────────
+       DESKTOP (≥ 1024px)  —  Bouncy & fun
+    ──────────────────────────────────────────────── */
+    @media (min-width: 1024px) {
+      .tab-enter {
+        animation: tabBounceIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+      }
+      @keyframes tabBounceIn {
+        0%   { opacity:0; transform:translateY(16px) scale(0.97); }
+        60%  { opacity:1; transform:translateY(-4px) scale(1.01); }
+        100% { opacity:1; transform:translateY(0) scale(1); }
+      }
+
+      @keyframes cardRevealIn {
+        0%   { opacity:0; transform:translateY(20px) scale(0.96); }
+        60%  { transform:translateY(-3px) scale(1.01); }
+        100% { opacity:1; transform:translateY(0) scale(1); }
+      }
+      @keyframes cardReveal {
+        0%   { opacity:0; transform:translateY(24px) scale(0.95); }
+        70%  { transform:translateY(-4px) scale(1.02); }
+        100% { opacity:1; transform:translateY(0) scale(1); }
+      }
+
+      .animate-popIn {
+        animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+      }
+      @keyframes popIn {
+        0%   { opacity:0; transform:scale(0.85) translateY(12px); }
+        70%  { transform:scale(1.03) translateY(-2px); }
+        100% { opacity:1; transform:scale(1) translateY(0); }
+      }
+
+      .stat-card {
+        animation: statCardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+      }
+      @keyframes statCardIn {
+        0%   { opacity:0; transform:scale(0.9) translateY(12px); }
+        70%  { transform:scale(1.02) translateY(-2px); }
+        100% { opacity:1; transform:scale(1) translateY(0); }
+      }
+
+      .animate-numPop {
+        animation: numPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+      }
+      @keyframes numPop {
+        0%   { transform:scale(0.7); opacity:0; }
+        70%  { transform:scale(1.15); }
+        100% { transform:scale(1); opacity:1; }
+      }
+
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease both;
+      }
+      @keyframes fadeIn {
+        from { opacity:0; transform:translateY(4px); }
+        to   { opacity:1; transform:translateY(0); }
+      }
+
+      .promo-card-wrap:hover { transform:translateY(-1px); }
+      .side-nav-btn:hover { transform:translateX(3px); }
+      .side-nav-btn:active { transform:scale(0.96); }
+    }
+
+    /* ── Shared (both platforms) ── */
+    .promo-card-wrap { transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .side-nav-btn { transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .progress-fill { transition:width 1s cubic-bezier(0.34,1.56,0.64,1); }
+
+    .done-btn:active { animation:doneBtnBounce 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes doneBtnBounce {
+      0%   { transform:scale(1); }
+      40%  { transform:scale(0.85); }
+      100% { transform:scale(1.1); }
+    }
+
+    .animate-spin-once { animation:spinOnce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
     @keyframes jiggle {
       0%,100% { transform:rotate(-1.5deg) scale(0.98); }
       50%     { transform:rotate(1.5deg) scale(0.98); }
     }
 
-    /* ── Spin once (vinyl) ── */
-    .animate-spin-once { animation:spinOnce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-    /* ── Fade in ── */
-    .animate-fadeIn { animation:fadeIn 0.3s ease both; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
-
-    /* ── Number count bounce ── */
-    .animate-numPop { animation:numPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
-    @keyframes numPop {
-      0%   { transform:scale(0.7); opacity:0; }
-      70%  { transform:scale(1.15); }
-      100% { transform:scale(1); opacity:1; }
-    }
-
-    /* ── Stat card entrance ── */
-    .stat-card { animation:statCardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
-    @keyframes statCardIn {
-      0%   { opacity:0; transform:scale(0.9) translateY(12px); }
-      70%  { transform:scale(1.02) translateY(-2px); }
-      100% { opacity:1; transform:scale(1) translateY(0); }
-    }
-
-    /* ── Goal smash ── */
+    /* Celebration shared */
     @keyframes goalSmash {
       0%   { opacity:0; transform:scale(0.5) rotate(-8deg); }
       50%  { transform:scale(1.15) rotate(3deg); }
@@ -89,8 +157,6 @@ const GlobalStyles = () => (
       60%  { transform:translateY(4px) scaleX(1.04); }
       100% { opacity:1; transform:translateY(0) scaleX(1); }
     }
-
-    /* ── Best month crown ── */
     @keyframes crownBounce {
       0%   { transform:translateY(-30px) scale(0.5) rotate(-15deg); opacity:0; }
       60%  { transform:translateY(6px) scale(1.1) rotate(5deg); opacity:1; }
@@ -103,25 +169,12 @@ const GlobalStyles = () => (
       100% { background-position:0% 50%; }
     }
 
-    /* ── Promo card hover ── */
-    .promo-card-wrap:hover { transform:translateY(-1px); }
-    .promo-card-wrap { transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-
-    /* ── Done button bounce ── */
-    .done-btn:active { animation:doneBtnBounce 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-    @keyframes doneBtnBounce {
-      0%   { transform:scale(1); }
-      40%  { transform:scale(0.85); }
-      100% { transform:scale(1.1); }
+    /* ── Expandable search ── */
+    .search-expand {
+      transition: width 0.35s cubic-bezier(0.25,0.46,0.45,0.94),
+                  opacity 0.2s ease,
+                  background 0.2s ease;
     }
-
-    /* ── Progress bar fill ── */
-    .progress-fill { transition:width 1s cubic-bezier(0.34,1.56,0.64,1); }
-
-    /* ── Sidebar nav hover ── */
-    .side-nav-btn { transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-    .side-nav-btn:hover { transform:translateX(3px); }
-    .side-nav-btn:active { transform:scale(0.96); }
   `}</style>
 );
 
@@ -534,6 +587,79 @@ function FloatingOrb({ emoji, top, left, right, bottom, animDur, animDelay, size
       zIndex: 1,
     }} className="hidden sm:block">
       {emoji}
+    </div>
+  );
+}
+
+// ─── Expandable Search (desktop only) ───────────────────────
+function ExpandableSearch({ value, onChange, placeholder = "Search…" }) {
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef(null);
+
+  const expand = () => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 30); };
+  const collapse = () => { if (!value) setOpen(false); };
+
+  return (
+    <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+      {/* The pill container grows/shrinks */}
+      <div className="search-expand" style={{
+        display: "flex", alignItems: "center", gap: "8px",
+        width: open ? "260px" : "36px",
+        height: "36px",
+        borderRadius: "18px",
+        background: open ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
+        border: open ? "1px solid rgba(139,92,246,0.35)" : "1px solid rgba(255,255,255,0.08)",
+        overflow: "hidden",
+        padding: open ? "0 10px 0 12px" : "0",
+        cursor: open ? "text" : "pointer",
+        boxShadow: open ? "0 0 0 3px rgba(139,92,246,0.1)" : "none",
+      }} onClick={!open ? expand : undefined}>
+
+        {/* Search icon — always visible, shifts left when open */}
+        <div style={{
+          flexShrink: 0,
+          width: "36px", height: "36px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginLeft: open ? "-12px" : "0",
+          transition: "margin 0.35s cubic-bezier(0.25,0.46,0.45,0.94)",
+          color: open ? "rgba(167,139,250,0.8)" : "rgba(255,255,255,0.4)",
+        }}>
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="8.5" cy="8.5" r="5.5"/>
+            <line x1="13" y1="13" x2="18" y2="18"/>
+          </svg>
+        </div>
+
+        {/* Input — fades in when open */}
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onBlur={collapse}
+          placeholder={placeholder}
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            color: "rgba(255,255,255,0.85)",
+            fontSize: "0.8rem",
+            opacity: open ? 1 : 0,
+            transition: "opacity 0.2s ease 0.1s",
+            minWidth: 0,
+            pointerEvents: open ? "auto" : "none",
+          }}
+        />
+
+        {/* Clear ×  */}
+        {open && value && (
+          <button onMouseDown={e => { e.preventDefault(); onChange(""); }}
+            style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer",
+              color: "rgba(255,255,255,0.35)", fontSize: "1rem", lineHeight: 1, padding: "2px 0" }}>
+            ×
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1318,7 +1444,7 @@ function PromoCard({ promo, index, onComplete, onDelete, onTogglePriority, onEdi
 }
 
 // ─── Home Tab ────────────────────────────────────────────────
-function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriority, onDelete, onEdit, pastClients, theme }) {
+function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriority, onDelete, onEdit, pastClients, theme, desktopSearch = "" }) {
   const g = themes[theme];
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState(goal);
@@ -1343,15 +1469,16 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
   useEffect(() => { setOrderedIds(basePromos.map(p => p.id)); }, [promos]);
 
   const filteredPromos = useMemo(() => {
-    if (!searchQuery.trim()) return basePromos;
-    const query = searchQuery.toLowerCase();
+    const q = (searchQuery || desktopSearch).trim().toLowerCase();
+    if (!q) return basePromos;
     return basePromos.filter(p =>
-      (p.song_name?.toLowerCase() || "").includes(query) ||
-      (p.client_name?.toLowerCase() || "").includes(query)
+      (p.song_name?.toLowerCase() || "").includes(q) ||
+      (p.client_name?.toLowerCase() || "").includes(q)
     );
-  }, [basePromos, searchQuery]);
+  }, [basePromos, searchQuery, desktopSearch]);
 
-  const activePromos = orderedIds.length && !searchQuery
+  const effectiveSearch = searchQuery || desktopSearch;
+  const activePromos = orderedIds.length && !effectiveSearch
     ? orderedIds.map(id => basePromos.find(p => p.id === id)).filter(Boolean)
     : filteredPromos;
 
@@ -1369,7 +1496,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
 
   const handleDragStart = (id) => setDragId(id);
   const handleDragEnter = (id) => {
-    if (id === dragId || searchQuery) return;
+    if (id === dragId || effectiveSearch) return;
     setDragOverId(id);
     setOrderedIds(prev => {
       const arr = [...prev];
@@ -1420,7 +1547,8 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
         <p className={`${g.muted} text-xs`}>{fmt(monthEarned)} earned · {fmt(Math.max(0,goal-monthEarned))} to go · <span className="text-violet-400/60">tap goal to edit</span></p>
       </div>
 
-      <div className={`${g.card} py-3`}>
+      {/* Mobile-only inline search */}
+      <div className={`${g.card} py-3 lg:hidden`}>
         <div className="relative">
           <input
             className={`${g.input} pr-10`}
@@ -1438,7 +1566,7 @@ function HomeTab({ promos, goal, onUpdateGoal, onAdd, onComplete, onTogglePriori
       <div className="space-y-3">
         {activePromos.length === 0 && (
           <div className={`text-center ${g.muted} py-12 text-sm`}>
-            {searchQuery ? "no promos match your search" : "no active promos — tap + to add one"}
+            {effectiveSearch ? "no promos match your search" : "no active promos — tap + to add one"}
           </div>
         )}
         {activePromos.map((p, i) => (
@@ -1544,21 +1672,21 @@ function StatsTab({ promos, goal, theme }) {
 }
 
 // ─── History Tab ─────────────────────────────────────────────
-function HistoryTab({ promos, onDelete, theme }) {
+function HistoryTab({ promos, onDelete, theme, desktopSearch = "" }) {
   const g = themes[theme];
   const [searchQuery, setSearchQuery] = useState("");
   
   const completed = promos.filter(p => p.completed).sort((a,b) => new Date(b.completed_at)-new Date(a.completed_at));
+  const effectiveSearch = searchQuery || desktopSearch;
 
-  // Filter based on search
   const filteredCompleted = useMemo(() => {
-    if (!searchQuery.trim()) return completed;
-    const query = searchQuery.toLowerCase();
+    if (!effectiveSearch.trim()) return completed;
+    const query = effectiveSearch.toLowerCase();
     return completed.filter(p => 
       (p.song_name?.toLowerCase() || "").includes(query) ||
       (p.client_name?.toLowerCase() || "").includes(query)
     );
-  }, [completed, searchQuery]);
+  }, [completed, searchQuery, desktopSearch]);
 
   const exportCSV = () => {
     const headers = ["Song","Client","Amount","Deadline","Completed","Video Link","Audio Link"];
@@ -1577,8 +1705,8 @@ function HistoryTab({ promos, onDelete, theme }) {
 
   return (
     <div className="space-y-3 pb-4 lg:pb-8 tab-enter">
-      {/* Search Bar */}
-      <div className={`${g.card} py-3`}>
+      {/* Mobile-only inline search */}
+      <div className={`${g.card} py-3 lg:hidden`}>
         <div className="relative">
           <input
             className={`${g.input} pr-10`}
@@ -1587,12 +1715,7 @@ function HistoryTab({ promos, onDelete, theme }) {
             onChange={e => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
-            >
-              ×
-            </button>
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">×</button>
           )}
         </div>
         {searchQuery && (
@@ -1602,7 +1725,7 @@ function HistoryTab({ promos, onDelete, theme }) {
         )}
       </div>
 
-      {completed.length > 0 && !searchQuery && (
+      {completed.length > 0 && !effectiveSearch && (
         <button onClick={exportCSV} className="w-full py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 text-sm transition-all flex items-center justify-center gap-2">
           <SvgIcon name="download" theme={theme} className="w-4 h-4 opacity-80" alt="" />
           Export CSV
@@ -1611,7 +1734,7 @@ function HistoryTab({ promos, onDelete, theme }) {
       
       {filteredCompleted.length === 0 && (
         <div className={`text-center ${g.muted} py-16 text-sm`}>
-          {searchQuery ? "no promos match your search" : "no completed promos yet"}
+          {effectiveSearch ? "no promos match your search" : "no completed promos yet"}
         </div>
       )}
       
@@ -2162,7 +2285,7 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem("glaze-theme") || "dark");
   const g = themes[theme];
 
-  const [ctrlN, setCtrlN] = useState(false);
+  const [desktopSearch, setDesktopSearch] = useState("");
 
   useEffect(() => { localStorage.setItem("glaze-theme", theme); }, [theme]);
 
@@ -2361,7 +2484,7 @@ export default function App() {
             {/* Desktop header */}
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className={`text-2xl font-black ${g.text}`}>
+                <h2 className={`text-2xl font-black ${g.text}`} key={tab} style={{ animation: "appleSlideIn 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both" }}>
                   {tab === "home"    ? "Queue"   :
                    tab === "stats"   ? "Stats"   :
                    tab === "history" ? "History" : "Profile"}
@@ -2372,16 +2495,25 @@ export default function App() {
                    tab === "history" ? `${completedPromos.length} completed` : "account & preferences"}
                 </p>
               </div>
-              {tab === "home" && (
-                <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={false} onOpened={() => {}} />
-              )}
+              <div className="flex items-center gap-3">
+                {(tab === "home" || tab === "history") && (
+                  <ExpandableSearch
+                    value={desktopSearch}
+                    onChange={v => { setDesktopSearch(v); if (tab !== "home" && tab !== "history") setDesktopSearch(""); }}
+                    placeholder={tab === "history" ? "Search history…" : "Search promos…"}
+                  />
+                )}
+                {tab === "home" && (
+                  <AddQuickBtn onAdd={addPromo} pastClients={pastClients} theme={theme} triggerOpen={false} onOpened={() => {}} />
+                )}
+              </div>
             </div>
 
             {/* Tab content — wider on desktop */}
             <div key={tab} className="tab-enter">
-              {tab === "home"    && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} />}
+              {tab === "home"    && <HomeTab promos={promos} goal={goal} onUpdateGoal={updateGoal} onAdd={addPromo} onComplete={completePromo} onTogglePriority={togglePriority} onDelete={deletePromo} onEdit={editPromo} pastClients={pastClients} theme={theme} desktopSearch={desktopSearch} />}
               {tab === "stats"   && <StatsTab promos={promos} goal={goal} theme={theme} />}
-              {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} />}
+              {tab === "history" && <HistoryTab promos={promos} onDelete={deletePromo} theme={theme} desktopSearch={desktopSearch} />}
               {tab === "profile" && <ProfileTab user={user} onSignOut={signOut} theme={theme} onThemeChange={setTheme} />}
             </div>
           </div>
