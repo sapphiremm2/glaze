@@ -264,7 +264,7 @@ function FloatingOrb({ emoji, top, left, right, bottom, animDur, animDelay, size
       pointerEvents: "none",
       userSelect: "none",
       zIndex: 1,
-    }}>
+    }} className="hidden sm:block">
       {emoji}
     </div>
   );
